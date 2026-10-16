@@ -9,6 +9,7 @@ import { useSyncExternalStore, useEffect, useState } from 'react';
 import { produce } from 'immer';
 import { loadState, saveState } from './db.js';
 import { getPhoto, syncPhotosToDisk } from './photos.js';
+import { HAS_SERVER } from './util.js';
 
 export const DEFAULT_MODEL = 'claude-opus-5';
 export const SCHEMA_VERSION = 2;
@@ -71,6 +72,7 @@ export function useSaveStatus() {
 }
 
 async function loadDisk() {
+  if (!HAS_SERVER) return null;
   try {
     const res = await fetch('/api/plan', { cache: 'no-store' });
     if (!res.ok) return null;
@@ -82,6 +84,7 @@ async function loadDisk() {
 }
 
 async function saveDisk(snapshot) {
+  if (!HAS_SERVER) return false;
   const { settings, ...rest } = snapshot;
   const body = JSON.stringify({ ...rest, settings: { ...settings, apiKey: '' } });
   try {

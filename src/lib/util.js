@@ -1,3 +1,8 @@
+// True when running on your computer with the Lovebird server (npm run dev / npm start).
+// False on the online copy (GitHub Pages), which is just static files: no saving to
+// the data folder, no link previews.
+export const HAS_SERVER = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname) || location.hostname.endsWith('.localhost');
+
 export function newId(prefix = '') {
   return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }

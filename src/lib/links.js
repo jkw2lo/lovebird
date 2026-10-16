@@ -2,10 +2,11 @@
 
 import { storePhoto } from './photos.js';
 import { update, getState } from './store.js';
-import { newId, normalizeUrl, hostOf } from './util.js';
+import { newId, normalizeUrl, hostOf, HAS_SERVER } from './util.js';
 
 export async function unfurl(rawUrl) {
   const url = normalizeUrl(rawUrl);
+  if (!HAS_SERVER) return { url, title: '', description: '', image: '', siteName: hostOf(url), error: 'link previews only work when Lovebird runs on your computer' };
   try {
     const res = await fetch(`/api/unfurl?url=${encodeURIComponent(url)}`);
     const data = await res.json();
@@ -19,7 +20,7 @@ export async function unfurl(rawUrl) {
 
 // Returns a stored image id, or null if the photo couldn't be fetched.
 export async function keepPhoto(imageUrl) {
-  if (!imageUrl) return null;
+  if (!imageUrl || !HAS_SERVER) return null;
   try {
     const res = await fetch(`/api/image?url=${encodeURIComponent(imageUrl)}`);
     if (!res.ok) return null;

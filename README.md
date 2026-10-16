@@ -13,6 +13,10 @@ npm run dev
 
 Then open http://localhost:5190. (`npm start` builds and serves the production version on the same port.)
 
+### The online copy
+
+Every push to `main` builds the app and publishes it to https://jkw2lo.github.io/lovebird/ (see `.github/workflows/pages.yml`). It works on any device, including your phone, with two differences: the plan is saved only in that browser (no `data` folder, so export backups now and then), and link previews don't work. It's a separate copy from the one on your computer; use **Settings → Export backup / Restore from backup** to move a plan between them.
+
 ## What's in it
 
 - **Today**: a countdown, where you are in the plan, the next few steps, nudges (a vendor's hold on your date is about to expire, a payment is due, a budget line is over), and a summary of vendors, budget and guests.

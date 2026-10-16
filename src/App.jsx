@@ -2,7 +2,7 @@ import { House, ListChecks, Handshake, Wallet, Users, LayoutGrid, Bookmark, Cloc
 import { useAppState, useSaveStatus } from './lib/store.js';
 import { useRoute, Toaster } from './components/ui.jsx';
 import { allTasks, taskStatus, coupleName, daysToGo } from './lib/derive.js';
-import { fmtDate } from './lib/util.js';
+import { fmtDate, HAS_SERVER } from './lib/util.js';
 import Assistant from './components/Assistant.jsx';
 import QuickAdd, { openQuickAdd } from './components/QuickAdd.jsx';
 import { Celebrations, Milestones } from './components/Celebrate.jsx';
@@ -118,7 +118,7 @@ function SaveStatus() {
   const status = useSaveStatus();
   if (status === 'browser-only') {
     return (
-      <a href="#/settings" className="tiny row" style={{ padding: '0 10px', gap: 6, color: 'var(--warn)', textDecoration: 'none' }} title="The Lovebird server isn't reachable, so changes are only in this browser for now.">
+      <a href="#/settings" className="tiny row" style={{ padding: '0 10px', gap: 6, color: 'var(--warn)', textDecoration: 'none' }} title={HAS_SERVER ? "The Lovebird server isn't reachable, so changes are only in this browser for now." : 'This is the online copy: your plan is saved in this browser only. Export backups from Settings.'}>
         <AlertTriangle size={14} /> Saved in this browser only
       </a>
     );

@@ -84,6 +84,8 @@ function parseMeta(html, pageUrl) {
 }
 
 export default defineConfig({
+  // Relative paths so the built app works both locally and at jkw2lo.github.io/lovebird/.
+  base: './',
   plugins: [react(), unfurl(), storage(fileURLToPath(new URL('./data', import.meta.url)))],
   // A fixed port matters: the browser's copy of your plan is tied to this exact address.
   server: { port: 5190, strictPort: true },

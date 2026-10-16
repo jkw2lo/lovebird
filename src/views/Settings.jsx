@@ -6,7 +6,7 @@ import { exportBackup, importBackup, resetEverything } from '../lib/backup.js';
 import { PageHead, Field, Text, MoneyInput, toast } from '../components/ui.jsx';
 import MagpieImport from '../components/MagpieImport.jsx';
 import { STYLES, PRIORITIES } from './Onboarding.jsx';
-import { fmtDate } from '../lib/util.js';
+import { fmtDate, HAS_SERVER } from '../lib/util.js';
 
 export default function Settings() {
   const state = useAppState();
@@ -103,6 +103,18 @@ function StorageInfo() {
     })();
   }, [status]);
   const mb = (n) => (n / 1024 / 1024).toFixed(n > 10 * 1024 * 1024 ? 0 : 1);
+  if (!HAS_SERVER) {
+    return (
+      <div className="stack tight small">
+        <div className="callout"><div>
+          <strong>This is the online copy of Lovebird.</strong> Your plan is saved only in this browser, on this device. It isn't shared with anyone
+          (the site is just the app; your details never leave your browser), but it also isn't backed up. Export a backup now and then.
+          Link previews and saving to the data folder only work when Lovebird runs on your computer.
+        </div></div>
+        {info && info.persisted !== null && <div><span className={`chip ${info.persisted ? 'green' : ''}`}>{info.persisted ? 'Browser storage: protected' : 'Browser storage: may be cleared if disk is full'}</span></div>}
+      </div>
+    );
+  }
   return (
     <div className="stack tight small">
       <p className="ink2">

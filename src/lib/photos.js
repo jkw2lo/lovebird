@@ -2,7 +2,7 @@
 // Big photos are shrunk before saving; a phone photo goes from ~5 MB to ~300 KB.
 
 import { putImage, getImage, getAllImages } from './db.js';
-import { newId } from './util.js';
+import { newId, HAS_SERVER } from './util.js';
 
 const MAX_EDGE = 1600;
 
@@ -26,6 +26,7 @@ export async function shrink(blob) {
 }
 
 async function upload(id, blob) {
+  if (!HAS_SERVER) return false;
   try {
     const res = await fetch(`/api/photos/${encodeURIComponent(id)}`, { method: 'PUT', body: blob });
     return res.ok;
@@ -45,7 +46,7 @@ export async function storePhoto(blob, { id = newId('img_'), resize = true, ...m
 /** Reads a photo from the browser, falling back to the copy on disk. */
 export async function getPhoto(id) {
   const record = await getImage(id);
-  if (record) return record;
+  if (record || !HAS_SERVER) return record || null;
   try {
     const res = await fetch(`/api/photos/${encodeURIComponent(id)}`);
     if (!res.ok) return null;
@@ -60,6 +61,7 @@ export async function getPhoto(id) {
 
 /** Copies any photos that are only in the browser onto disk. */
 export async function syncPhotosToDisk() {
+  if (!HAS_SERVER) return;
   let onDisk;
   try {
     const res = await fetch('/api/photos');
