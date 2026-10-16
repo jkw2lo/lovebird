@@ -9,6 +9,8 @@ import { PageHead, Empty, Photo, Stars, toast } from '../components/ui.jsx';
 import { AddVendorModal } from './Vendors.jsx';
 import { BookModal } from './VendorDetail.jsx';
 import { openAssistant } from '../components/Assistant.jsx';
+import VenueDirectory from '../components/VenueDirectory.jsx';
+import { TORONTO } from '../data/venues.js';
 
 export const STATUS_LABEL = Object.fromEntries(VENDOR_STATUSES.map((s) => [s.key, s.label]));
 export const AVAIL_LABEL = Object.fromEntries(AVAILABILITY.map((s) => [s.key, s.label]));
@@ -17,7 +19,8 @@ export const availChip = (a) => ({ available: 'green', hold: 'gold', unavailable
 export default function VendorCategory({ category }) {
   const state = useAppState();
   const cat = CATEGORY_BY_KEY[category];
-  const [tab, setTab] = useState('options');
+  const hasDirectory = category === 'venue';
+  const [tab, setTab] = useState(() => (hasDirectory && !state.vendors.some((v) => v.category === 'venue') ? 'discover' : 'options'));
   const [adding, setAdding] = useState(false);
   const [showPassed, setShowPassed] = useState(false);
   const [booking, setBooking] = useState(null);
@@ -45,7 +48,8 @@ export default function VendorCategory({ category }) {
       </div>
 
       <div className="tabs">
-        <button className={tab === 'options' ? 'on' : ''} onClick={() => setTab('options')}>Options ({vendors.length})</button>
+        {hasDirectory && <button className={tab === 'discover' ? 'on' : ''} onClick={() => setTab('discover')}>✨ Discover {TORONTO.label} venues</button>}
+        <button className={tab === 'options' ? 'on' : ''} onClick={() => setTab('options')}>Your options ({vendors.length})</button>
         <button className={tab === 'compare' ? 'on' : ''} onClick={() => setTab('compare')}>Compare</button>
         <button className={tab === 'questions' ? 'on' : ''} onClick={() => setTab('questions')}>Questions to ask</button>
       </div>
@@ -62,11 +66,13 @@ export default function VendorCategory({ category }) {
         )
       )}
 
+      {tab === 'discover' && <VenueDirectory state={state} />}
+
       {tab === 'compare' && <Compare vendors={vendors.filter((v) => v.status !== 'passed' || showPassed)} cat={cat} state={state} onBook={setBooking} />}
 
       {tab === 'questions' && <Questions cat={cat} />}
 
-      {passed.length > 0 && tab !== 'questions' && (
+      {passed.length > 0 && (tab === 'options' || tab === 'compare') && (
         <button className="btn sm ghost" style={{ marginTop: 14 }} onClick={() => setShowPassed(!showPassed)}>{showPassed ? 'Hide' : 'Show'} {plural(passed.length, 'passed option')}</button>
       )}
 

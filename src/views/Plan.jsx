@@ -6,6 +6,7 @@ import { CATEGORY_BY_KEY } from '../data/categories.js';
 import { fmtDate, newId } from '../lib/util.js';
 import { PageHead, Segmented, Text } from '../components/ui.jsx';
 import { openAssistant } from '../components/Assistant.jsx';
+import { TORONTO } from '../data/venues.js';
 
 const TOOL_LINKS = {
   budget: ['#/budget', 'Open budget'],
@@ -25,6 +26,7 @@ const GUIDED = {
 
 export function TaskLink({ task, small }) {
   const cls = `btn ${small ? 'sm' : ''}`;
+  if (task.id === 'venue') return <a className={`${cls} primary`} href="#/vendors/venue">✨ Browse {TORONTO.venues.length} researched {TORONTO.label} venues <ArrowRight size={14} /></a>;
   if (GUIDED[task.id]) return <a className={`${cls} primary`} href={GUIDED[task.id][0]}>✨ {GUIDED[task.id][1]} <ArrowRight size={14} /></a>;
   if (task.category && CATEGORY_BY_KEY[task.category]) {
     const c = CATEGORY_BY_KEY[task.category];
