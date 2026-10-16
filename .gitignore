@@ -1,0 +1,5 @@
+node_modules
+dist
+# Your wedding plan and photos. Private: never commit these.
+data/
+.DS_Store

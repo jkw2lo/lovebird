@@ -1,0 +1,25 @@
+{
+  "name": "lovebird",
+  "version": "0.1.0",
+  "description": "A wedding planner in an app: a guided plan, vendors and quotes, budget, guests, seating and saved links.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "start": "vite build && vite preview --port 5190"
+  },
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.135.0",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource/fraunces": "^5.3.0",
+    "immer": "^11.1.21",
+    "lucide-react": "^1.58.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.2",
+    "vite": "^8.3.4"
+  },
+  "private": true
+}
