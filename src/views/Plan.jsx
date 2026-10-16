@@ -17,8 +17,15 @@ const TOOL_LINKS = {
   vendors: ['#/vendors', 'Open vendors'],
 };
 
+// Steps with a guided walkthrough get it as their main action.
+const GUIDED = {
+  budget: ['#/budget?build=1', 'Plan your budget step by step'],
+  guestDraft: ['#/guests?build=1', 'Build your guest list step by step'],
+};
+
 export function TaskLink({ task, small }) {
   const cls = `btn ${small ? 'sm' : ''}`;
+  if (GUIDED[task.id]) return <a className={`${cls} primary`} href={GUIDED[task.id][0]}>✨ {GUIDED[task.id][1]} <ArrowRight size={14} /></a>;
   if (task.category && CATEGORY_BY_KEY[task.category]) {
     const c = CATEGORY_BY_KEY[task.category];
     return <a className={cls} href={`#/vendors/${c.key}`}>{c.emoji} {task.books ? `Compare ${c.label.toLowerCase()} options` : `Go to ${c.label.toLowerCase()}`} <ArrowRight size={14} /></a>;

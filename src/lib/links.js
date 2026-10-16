@@ -1,7 +1,8 @@
 // Pasting a link: fetch its title and photo through the local server, and keep a copy of the photo.
 
 import { storePhoto } from './photos.js';
-import { normalizeUrl, hostOf } from './util.js';
+import { update, getState } from './store.js';
+import { newId, normalizeUrl, hostOf } from './util.js';
 
 export async function unfurl(rawUrl) {
   const url = normalizeUrl(rawUrl);
@@ -33,4 +34,29 @@ export async function keepPhoto(imageUrl) {
 // From a file the user picked or dropped.
 export async function keepFile(file) {
   return storePhoto(file, { name: file.name });
+}
+
+// Saves a link to a board: fetches its title and photo, keeps a copy of the photo.
+export async function saveLink(rawUrl, boardId) {
+  const meta = await unfurl(rawUrl);
+  const imageId = await keepPhoto(meta.image);
+  const save = {
+    id: newId('s_'), url: meta.url, title: meta.title || hostOf(meta.url) || meta.url, description: meta.description || '',
+    siteName: meta.siteName || hostOf(meta.url), price: meta.price ? `$${meta.price}` : '', imageId, imageUrl: meta.image || null,
+    boardId: boardId || getState().boards[0].id, tags: [], notes: '', details: [], source: 'link', createdAt: Date.now(),
+  };
+  update((s) => { s.saves.unshift(save); });
+  return save;
+}
+
+// Saves a picture (a dropped file or a pasted screenshot) as its own card.
+export async function savePicture(file, boardId) {
+  const imageId = await keepFile(file);
+  const name = file.name && !/^image\.\w+$/i.test(file.name) ? file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ') : 'Screenshot';
+  const save = {
+    id: newId('s_'), url: '', title: name, description: '', siteName: '', price: '', imageId, imageUrl: null,
+    boardId: boardId || getState().boards[0].id, tags: [], notes: '', details: [], source: 'picture', createdAt: Date.now(),
+  };
+  update((s) => { s.saves.unshift(save); });
+  return save;
 }

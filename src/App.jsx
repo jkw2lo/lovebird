@@ -1,9 +1,11 @@
-import { House, ListChecks, Handshake, Wallet, Users, LayoutGrid, Bookmark, Clock, Settings as Gear, Bird, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { House, ListChecks, Handshake, Wallet, Users, LayoutGrid, Bookmark, Clock, Settings as Gear, Bird, Plus, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 import { useAppState, useSaveStatus } from './lib/store.js';
 import { useRoute, Toaster } from './components/ui.jsx';
 import { allTasks, taskStatus, coupleName, daysToGo } from './lib/derive.js';
 import { fmtDate } from './lib/util.js';
 import Assistant from './components/Assistant.jsx';
+import QuickAdd, { openQuickAdd } from './components/QuickAdd.jsx';
+import { Celebrations, Milestones } from './components/Celebrate.jsx';
 import Onboarding from './views/Onboarding.jsx';
 import Home from './views/Home.jsx';
 import Plan from './views/Plan.jsx';
@@ -28,15 +30,15 @@ const NAV = [
   { path: 'dayof', label: 'Day-of timeline', short: 'Day-of', icon: Clock },
 ];
 
-function routeView(parts) {
+function routeView(parts, query) {
   const [a, b] = parts;
   switch (a) {
     case undefined: case '': return <Home />;
     case 'plan': return <Plan focus={b} />;
     case 'vendors': return b ? <VendorCategory category={b} /> : <Vendors />;
-    case 'vendor': return <VendorDetail id={b} />;
-    case 'budget': return <Budget />;
-    case 'guests': return <Guests />;
+    case 'vendor': return <VendorDetail id={b} query={query} />;
+    case 'budget': return <Budget query={query} />;
+    case 'guests': return <Guests query={query} />;
     case 'seating': return <Seating />;
     case 'saves': return <Saves board={b} />;
     case 'dayof': return <DayOf />;
@@ -47,9 +49,9 @@ function routeView(parts) {
 
 export default function App() {
   const state = useAppState();
-  const { parts } = useRoute();
+  const { parts, query } = useRoute();
 
-  if (!state.onboarded) return <><Onboarding /><Toaster /></>;
+  if (!state.onboarded) return <><Onboarding /><Celebrations /><Toaster /></>;
 
   const section = parts[0] === 'vendor' ? 'vendors' : parts[0] || '';
   const overdue = allTasks(state).filter((t) => { const s = taskStatus(state, t); return !s.done && !s.skipped && s.daysLeft !== null && s.daysLeft < 0; }).length;
@@ -68,6 +70,9 @@ export default function App() {
             {state.wedding.date ? <>{fmtDate(state.wedding.date)} · {dtg > 0 ? `${dtg} days to go` : dtg === 0 ? 'Today!' : 'Married!'}</> : 'Date not set yet'}
           </div>
         </a>
+        <button className="btn primary" style={{ justifyContent: 'flex-start', paddingLeft: 12 }} onClick={() => openQuickAdd()} title="Add something (N)">
+          <Plus size={17} /> Add something <kbd className="kbd">N</kbd>
+        </button>
         <nav className="nav">
           {NAV.map((item) => (
             <a key={item.path} href={`#/${item.path}`} className={section === item.path ? 'active' : ''}>
@@ -85,10 +90,11 @@ export default function App() {
         <header className="mobile-top">
           <a className="brand" href="#/"><span className="brand-mark"><Bird size={15} /></span><span className="brand-name">Lovebird</span></a>
           <span className="grow" />
+          <button className="btn primary icon" aria-label="Add something" onClick={() => openQuickAdd()}><Plus size={19} /></button>
           <a href="#/dayof" className="btn ghost icon" aria-label="Day-of timeline"><Clock size={19} /></a>
           <a href="#/settings" className="btn ghost icon" aria-label="Settings"><Gear size={19} /></a>
         </header>
-        {routeView(parts)}
+        {routeView(parts, query)}
       </main>
 
       <nav className="mobile-nav">
@@ -100,6 +106,9 @@ export default function App() {
       </nav>
 
       <Assistant />
+      <QuickAdd />
+      <Milestones />
+      <Celebrations />
       <Toaster />
     </div>
   );

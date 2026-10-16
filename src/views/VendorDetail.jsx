@@ -1,5 +1,6 @@
-import { useState, Fragment } from 'react';
-import { ArrowLeft, ExternalLink, Plus, Trash2, Sparkles, CheckCircle2, ImagePlus, Mail, Phone, Undo2 } from 'lucide-react';
+import { useState, useEffect, Fragment } from 'react';
+import { ArrowLeft, ExternalLink, Plus, Trash2, Sparkles, CheckCircle2, ImagePlus, Mail, Phone, Undo2, MessagesSquare } from 'lucide-react';
+import Interview from '../components/Interview.jsx';
 import { useAppState, update, getState } from '../lib/store.js';
 import { CATEGORIES, CATEGORY_BY_KEY, VENDOR_STATUSES, AVAILABILITY } from '../data/categories.js';
 import { chosenQuote, bookedVendor } from '../lib/derive.js';
@@ -12,11 +13,20 @@ function setVendor(id, patch) {
   update((s) => { const v = s.vendors.find((x) => x.id === id); if (v) Object.assign(v, typeof patch === 'function' ? patch(v) : patch); });
 }
 
-export default function VendorDetail({ id }) {
+export default function VendorDetail({ id, query }) {
   const state = useAppState();
   const v = state.vendors.find((x) => x.id === id);
   const [booking, setBooking] = useState(false);
   const [reading, setReading] = useState(false);
+  const [interviewing, setInterviewing] = useState(false);
+
+  // Arriving from "Log a quote" or "Start a call" opens that straight away.
+  useEffect(() => {
+    if (!query) return;
+    if (query.get('quote')) setReading(true);
+    if (query.get('talk')) setInterviewing(true);
+    if (query.get('quote') || query.get('talk')) history.replaceState(null, '', `#/vendor/${id}`);
+  }, [id, query && query.toString()]);
   if (!v) return <Empty emoji="🤷" title="That vendor is gone" action={<a className="btn" href="#/vendors">Back to vendors</a>} />;
   const cat = CATEGORY_BY_KEY[v.category];
   const set = (patch) => setVendor(v.id, patch);
@@ -74,7 +84,10 @@ export default function VendorDetail({ id }) {
             ) : otherBooked && otherBooked.id !== v.id ? (
               <p className="small muted">You've already booked <a href={`#/vendor/${otherBooked.id}`}>{otherBooked.name}</a> for this.</p>
             ) : (
-              <div className="row"><button className="btn primary" onClick={() => setBooking(true)}><CheckCircle2 size={16} /> Book {v.name ? v.name.split(' ')[0] : 'this vendor'}</button></div>
+              <div className="row wrap">
+                <button className="btn" onClick={() => setInterviewing(true)}><MessagesSquare size={16} /> On a call or tour? Start here</button>
+                <button className="btn primary" onClick={() => setBooking(true)}><CheckCircle2 size={16} /> Book them</button>
+              </div>
             )}
           </div>
         </div>
@@ -157,6 +170,7 @@ export default function VendorDetail({ id }) {
 
       {booking && <BookModal vendor={v} onClose={() => setBooking(false)} />}
       {reading && <ReadQuoteModal vendor={v} cat={cat} onClose={() => setReading(false)} />}
+      {interviewing && <Interview vendor={v} weddingDate={state.wedding.date} onClose={() => setInterviewing(false)} />}
     </div>
   );
 }
@@ -234,8 +248,8 @@ function ReadQuoteModal({ vendor, cat, onClose }) {
 
   return (
     <Modal title="Paste a quote or email" subtitle={`Paste what ${vendor.name || 'they'} sent: a proposal, a price list or an email. Claude pulls out the price, deposit, dates and what's included.`} onClose={onClose} wide
-      footer={<><button className="btn ghost" onClick={onClose}>Cancel</button><button className="btn primary" disabled={!hasKey || busy || !text.trim()} onClick={run}>{busy ? 'Reading…' : <><Sparkles size={15} /> Fill in the quote</>}</button></>}>
-      {!hasKey && <div className="callout" style={{ marginBottom: 12 }}><div>This uses Claude, which needs an Anthropic API key. <a href="#/settings" onClick={onClose}>Add one in Settings</a>, or close this and type the quote in by hand.</div></div>}
+      footer={<><button className="btn ghost" style={{ marginRight: 'auto' }} onClick={() => { setVendor(vendor.id, (x) => ({ quotes: [...x.quotes, newQuote(x.quotes.length)], status: ['idea', 'contacted'].includes(x.status) ? 'quoted' : x.status })); onClose(); toast('Added a blank quote below. Fill it in.'); }}>Type it in myself</button><button className="btn ghost" onClick={onClose}>Cancel</button><button className="btn primary" disabled={!hasKey || busy || !text.trim()} onClick={run}>{busy ? 'Reading…' : <><Sparkles size={15} /> Fill in the quote</>}</button></>}>
+      {!hasKey && <div className="callout" style={{ marginBottom: 12 }}><div>This uses Claude, which needs an Anthropic API key. <a href="#/settings" onClick={onClose}>Add one in Settings</a>, or choose <strong>Type it in myself</strong>.</div></div>}
       <textarea className="textarea" rows={12} autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder="Hi! Thanks so much for reaching out. For a Saturday in September our Classic package is $6,800 and includes…" />
       {error && <p className="small" style={{ color: 'var(--danger)', marginTop: 8 }}>{error}</p>}
     </Modal>
@@ -287,7 +301,6 @@ export function BookModal({ vendor, onClose }) {
       }
       if (passOthers) for (const o of s.vendors) if (others.some((x) => x.id === o.id)) o.status = 'passed';
     });
-    toast(`Booked ${vendor.name}! 🎉`);
     onClose();
   };
 

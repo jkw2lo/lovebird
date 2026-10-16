@@ -1,5 +1,6 @@
-import { useMemo, useState, Fragment } from 'react';
-import { Plus, Download, Upload, Search, Trash2, X, UserPlus, Send } from 'lucide-react';
+import { useMemo, useState, useEffect, Fragment } from 'react';
+import GuestBuilder from '../components/GuestBuilder.jsx';
+import { Plus, Download, Upload, Search, Trash2, X, UserPlus, Send, Wand2 } from 'lucide-react';
 import { useAppState, update } from '../lib/store.js';
 import { guestStats, sideLabel } from '../lib/derive.js';
 import { newGuest, parseGuestLines, guestsFromCsv, guestsToCsv } from '../lib/guests.js';
@@ -19,8 +20,12 @@ function setGuest(id, patch) {
   update((s) => { const g = s.guests.find((x) => x.id === id); if (g) Object.assign(g, patch); });
 }
 
-export default function Guests() {
+export default function Guests({ query }) {
   const state = useAppState();
+  const [building, setBuilding] = useState(false);
+  useEffect(() => {
+    if (query && query.get('build')) { setBuilding(true); history.replaceState(null, '', '#/guests'); }
+  }, [query && query.toString()]);
   const stats = guestStats(state);
   const [q, setQ] = useState('');
   const [rsvp, setRsvp] = useState('all');
@@ -70,6 +75,7 @@ export default function Guests() {
     <div className="stack loose">
       <PageHead eyebrow="Guests" title="Guest list" lede="Add households, track who's invited and who's coming, and keep meals and dietary needs in one place. Seat them in Seating.">
         <button className="btn" onClick={() => download(`guest-list-${dayString(today())}.csv`, guestsToCsv(state), 'text/csv')} disabled={!state.guests.length}><Download size={15} /> Export CSV</button>
+        <button className="btn" onClick={() => setBuilding(true)}><Wand2 size={15} /> Build step by step</button>
         <button className="btn primary" onClick={() => setAdding(true)}><Plus size={16} /> Add guests</button>
       </PageHead>
 
@@ -85,8 +91,12 @@ export default function Guests() {
       )}
 
       {state.guests.length === 0 ? (
-        <div className="card"><Empty emoji="💌" title="Start your guest list" action={<button className="btn primary" onClick={() => setAdding(true)}><Plus size={16} /> Add guests</button>}>
-          Type everyone in at once, one household per line, or import a spreadsheet. Don't worry about addresses or meals yet.
+        <div className="card"><Empty emoji="💌" title="Start your guest list" action={
+          <div className="row" style={{ justifyContent: 'center' }}>
+            <button className="btn primary" onClick={() => setBuilding(true)}><Wand2 size={16} /> Build it step by step</button>
+            <button className="btn" onClick={() => setAdding(true)}><Plus size={16} /> Paste or import a list</button>
+          </div>}>
+          The step-by-step builder walks you through each circle (family, friends, work) for both of you, with a running count. Don't worry about addresses or meals yet.
         </Empty></div>
       ) : (
         <section className="card">
@@ -175,13 +185,16 @@ export default function Guests() {
         </section>
       )}
 
-      {adding && <AddGuestsModal state={state} groups={groups} onClose={() => setAdding(false)} />}
+      {adding && <AddGuestsModal onClose={() => setAdding(false)} />}
+      {building && <GuestBuilder onClose={() => setBuilding(false)} />}
       {editing && <GuestDrawer id={editing} state={state} groups={groups} meals={meals} onClose={() => setEditing(null)} />}
     </div>
   );
 }
 
-function AddGuestsModal({ state, groups, onClose }) {
+export function AddGuestsModal({ onClose }) {
+  const state = useAppState();
+  const groups = [...new Set([...GROUPS, ...state.guests.map((g) => g.group).filter(Boolean)])];
   const [mode, setMode] = useState('list');
   const [text, setText] = useState('');
   const [side, setSide] = useState('both');

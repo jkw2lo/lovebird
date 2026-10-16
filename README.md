@@ -25,6 +25,16 @@ Then open http://localhost:5190. (`npm start` builds and serves the production v
 - **Day-of timeline**: start from a template for a 5pm ceremony and adjust it. Your booked vendors' contacts are listed below it. Printable.
 - **Ask your planner** (optional): a chat that sees a summary of your plan, vendors, budget and guest numbers. On any vendor's page, **Paste a quote** has Claude read a vendor's email or proposal into the quote fields. Both need an Anthropic API key (Settings).
 
+## Guided input
+
+- **Add something** (the + button, or press **N** anywhere): save a link, add a vendor, log a quote, add guests, record RSVPs as they come in, add an expense, add a to-do.
+- **Build your guest list step by step**: walks through each circle (immediate family, extended family, close friends, wider circle, work, family friends) for each of you, then shared friends, with a running count against your target. Guests are saved as you go.
+- **Plan your budget step by step**: who's contributing, headcount (with a per-guest reality check), your top three priorities, then a split that gives those categories more. Every number stays editable.
+- **On a call or tour?** On any vendor's page: the questions worth asking, one card at a time, then whether your date is open, the price, and how it felt. Everything lands on their page.
+- **Saves**: drop pictures or paste a screenshot or link anywhere on the page.
+- **Day-of**: change the ceremony time and the whole day moves with it.
+- Celebrations when you book a vendor, finish a phase of the plan, get every RSVP in, or seat everyone.
+
 ## Your data
 
 Every change is saved in two places:

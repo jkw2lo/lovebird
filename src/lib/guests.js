@@ -11,9 +11,13 @@ export function newGuest(fields = {}) {
   };
 }
 
+// "Aunt Lily" is a first name with a title; "Dad Chen" is a title with a last name.
+const BEFORE_FIRST_NAME = /^(aunt|auntie|uncle|cousin|great-aunt|great-uncle|grandma|grandpa|nana|nanna|granny|sister|brother)$/i;
+
 function splitName(full) {
   const parts = full.trim().split(/\s+/);
   if (parts.length === 1) return { first: parts[0], last: '' };
+  if (parts.length === 2 && BEFORE_FIRST_NAME.test(parts[0])) return { first: parts.join(' '), last: '' };
   return { first: parts.slice(0, -1).join(' '), last: parts[parts.length - 1] };
 }
 

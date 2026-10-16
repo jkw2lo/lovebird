@@ -1,5 +1,6 @@
-import { useState, Fragment } from 'react';
-import { ChevronDown, Plus, Trash2, RotateCcw, Sparkles } from 'lucide-react';
+import { useState, useEffect, Fragment } from 'react';
+import BudgetBuilder from '../components/BudgetBuilder.jsx';
+import { ChevronDown, Plus, Trash2, RotateCcw, Sparkles, Wand2 } from 'lucide-react';
 import { useAppState, update } from '../lib/store.js';
 import { budgetSummary, vendorCost } from '../lib/derive.js';
 import { BUDGET_LINES } from '../data/categories.js';
@@ -7,8 +8,12 @@ import { money, fmtDate, newId, relDays, daysBetween, parseDay, today, dayString
 import { PageHead, MoneyInput, Text, Bar, Segmented } from '../components/ui.jsx';
 import { openAssistant } from '../components/Assistant.jsx';
 
-export default function Budget() {
+export default function Budget({ query }) {
   const state = useAppState();
+  const [building, setBuilding] = useState(false);
+  useEffect(() => {
+    if (query && query.get('build')) { setBuilding(true); history.replaceState(null, '', '#/budget'); }
+  }, [query && query.toString()]);
   const b = budgetSummary(state);
   const [open, setOpen] = useState(new Set());
   const toggle = (k) => setOpen((o) => { const n = new Set(o); n.has(k) ? n.delete(k) : n.add(k); return n; });
@@ -18,7 +23,16 @@ export default function Budget() {
     <div className="stack loose">
       <PageHead eyebrow="Budget" title="Where the money goes" lede="Targets start from typical splits for a US wedding. Change any of them; booked vendors and extra expenses fill in what's committed.">
         <button className="btn ghost" onClick={() => openAssistant('Look at our budget. Are we on track, and where could we save if we need to?')}><Sparkles size={15} /> Ask your planner</button>
+        <button className="btn" onClick={() => setBuilding(true)}><Wand2 size={15} /> Plan it step by step</button>
       </PageHead>
+
+      {state.budget.contributors.length > 0 && (
+        <div className="row wrap" style={{ gap: 6, marginTop: -8 }}>
+          <span className="small muted">Coming from:</span>
+          {state.budget.contributors.map((c) => <span key={c.id} className="chip">{c.name || 'Someone'} · {money(c.amount)}</span>)}
+        </div>
+      )}
+      {building && <BudgetBuilder onClose={() => setBuilding(false)} />}
 
       <section className="grid four">
         <div className="card stat">

@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { Link2, Plus, Trash2, ExternalLink, Handshake, Pencil, Download, Heart, Search } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Link2, Plus, Trash2, ExternalLink, Handshake, Pencil, Download, Heart, Search, ImagePlus } from 'lucide-react';
 import { useAppState, update } from '../lib/store.js';
 import { CATEGORIES, CATEGORY_BY_KEY, guessCategory } from '../data/categories.js';
-import { newId, hostOf, plural } from '../lib/util.js';
-import { unfurl, keepPhoto } from '../lib/links.js';
+import { newId, hostOf, plural, normalizeUrl } from '../lib/util.js';
+import { saveLink, savePicture } from '../lib/links.js';
 import { PageHead, Modal, Field, Text, Photo, Empty, go, toast } from '../components/ui.jsx';
 import MagpieImport from '../components/MagpieImport.jsx';
 import { newVendor } from '../lib/magpie.js';
@@ -20,22 +20,51 @@ export default function Saves({ board }) {
 
   const saves = state.saves.filter((s) => (current === 'all' || s.boardId === current) && (!q || `${s.title} ${s.notes} ${s.siteName} ${(s.tags || []).join(' ')}`.toLowerCase().includes(q.toLowerCase())));
 
+  const targetBoard = current === 'all' ? state.boards[0].id : current;
+  const [dragging, setDragging] = useState(false);
+
   async function addLink(e) {
     e.preventDefault();
     if (!url.trim()) return;
     setBusy(true);
-    const meta = await unfurl(url);
-    const imageId = await keepPhoto(meta.image);
-    const save = {
-      id: newId('s_'), url: meta.url, title: meta.title || hostOf(meta.url) || meta.url, description: meta.description || '',
-      siteName: meta.siteName || hostOf(meta.url), price: meta.price ? `$${meta.price}` : '', imageId, imageUrl: meta.image || null,
-      boardId: current === 'all' ? state.boards[0].id : current, tags: [], notes: '', details: [], source: 'link', createdAt: Date.now(),
-    };
-    update((s) => { s.saves.unshift(save); });
+    await saveLink(url, targetBoard);
     setBusy(false);
     setUrl('');
     toast('Saved');
   }
+
+  async function addFiles(files) {
+    const images = [...files].filter((f) => f.type.startsWith('image/'));
+    if (!images.length) return false;
+    for (const f of images) await savePicture(f, targetBoard);
+    toast(images.length === 1 ? 'Picture saved' : `${images.length} pictures saved`);
+    return true;
+  }
+
+  // Paste a screenshot or a link anywhere on this page (outside a text box) to save it.
+  useEffect(() => {
+    const onPaste = async (e) => {
+      const tag = (e.target.tagName || '').toLowerCase();
+      if (['input', 'textarea'].includes(tag) || document.querySelector('.overlay')) return;
+      if (e.clipboardData.files.length && (await addFiles(e.clipboardData.files))) return;
+      const text = e.clipboardData.getData('text').trim();
+      if (/^(https?:\/\/|www\.)\S+$/i.test(text)) {
+        toast('Saving link…');
+        await saveLink(normalizeUrl(text), targetBoard);
+        toast('Saved');
+      }
+    };
+    window.addEventListener('paste', onPaste);
+    return () => window.removeEventListener('paste', onPaste);
+  });
+
+  const onDrop = async (e) => {
+    e.preventDefault();
+    setDragging(false);
+    if (e.dataTransfer.files.length && (await addFiles(e.dataTransfer.files))) return;
+    const link = (e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain') || '').split('\n')[0].trim();
+    if (/^https?:\/\//i.test(link)) { toast('Saving link…'); await saveLink(link, targetBoard); toast('Saved'); }
+  };
 
   const addBoard = () => {
     const name = window.prompt('Name the new board (e.g. Florals, Dresses, Honeymoon)');
@@ -46,14 +75,16 @@ export default function Saves({ board }) {
   };
 
   return (
-    <div className="stack">
+    <div className="stack" onDragOver={(e) => { e.preventDefault(); setDragging(true); }} onDragLeave={(e) => { if (e.currentTarget === e.target) setDragging(false); }} onDrop={onDrop} style={{ position: 'relative' }}>
+      {dragging && <div className="drop-zone" onDragLeave={() => setDragging(false)}>Drop to save it here</div>}
       <PageHead eyebrow="Saves" title="Links & inspiration" lede="Everything you find while planning: ideas, dresses, decor, the honeymoon. Turn any save into a vendor option when you're ready to get a quote.">
         <button className="btn" onClick={() => setImporting(true)}><Download size={15} /> Import from Magpie</button>
       </PageHead>
 
       <form className="add-link" onSubmit={addLink}>
         <Link2 size={18} className="muted" style={{ margin: '0 2px 0 10px', alignSelf: 'center' }} />
-        <input className="input" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Paste a link to save it…" aria-label="Link to save" />
+        <input className="input" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Paste a link, or drop a picture or screenshot anywhere here…" aria-label="Link to save" />
+        <label className="btn ghost" title="Add pictures from your computer" style={{ alignSelf: 'center' }}><ImagePlus size={16} /><input type="file" accept="image/*" multiple hidden onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }} /></label>
         <button className="btn primary" disabled={busy || !url.trim()}>{busy ? 'Saving…' : 'Save'}</button>
       </form>
 
@@ -78,13 +109,13 @@ export default function Saves({ board }) {
 
       {saves.length === 0 ? (
         <div className="card"><Empty emoji="🔖" title={state.saves.length ? 'Nothing on this board yet' : 'Nothing saved yet'} action={!state.saves.length && <button className="btn" onClick={() => setImporting(true)}><Download size={15} /> Import from Magpie</button>}>
-          Paste any link above: a dress, a centerpiece idea, a hotel for the honeymoon. Lovebird keeps the title and a copy of the photo.
+          Paste any link above, or drop in pictures and screenshots (Instagram and Pinterest finds included). Lovebird keeps a copy of every photo.
         </Empty></div>
       ) : (
         <div className="masonry">
           {saves.map((s) => (
             <div key={s.id} className="card save-card">
-              <a href={s.url} target="_blank" rel="noreferrer" style={{ display: 'block' }}>
+              <a href={s.url || undefined} target="_blank" rel="noreferrer" style={{ display: 'block' }} onClick={(e) => { if (!s.url) { e.preventDefault(); setEditing(s.id); } }}>
                 {s.imageId || s.imageUrl ? <Photo imageId={s.imageId} url={s.imageUrl} alt="" fallback={<div className="noimg">🔖</div>} /> : <div className="noimg">🔖</div>}
               </a>
               <div className="actions">
@@ -92,7 +123,7 @@ export default function Saves({ board }) {
                 <button className="btn sm icon" title="Make this a vendor option" onClick={() => setToVendor(s)}><Handshake size={14} /></button>
               </div>
               <div className="bd">
-                <a className="title" href={s.url} target="_blank" rel="noreferrer">{s.title}</a>
+                {s.url ? <a className="title" href={s.url} target="_blank" rel="noreferrer">{s.title}</a> : <button className="title" style={{ background: 'none', border: 0, padding: 0, textAlign: 'left', cursor: 'pointer' }} onClick={() => setEditing(s.id)}>{s.title}</button>}
                 <div className="row tiny muted" style={{ gap: 6 }}>
                   {s.favorite && <Heart size={12} fill="currentColor" style={{ color: 'var(--accent)' }} />}
                   <span className="ellipsis">{s.siteName || hostOf(s.url)}</span>
@@ -143,7 +174,7 @@ function EditSave({ id, state, onClose }) {
     <Modal title="Edit save" onClose={onClose}
       footer={<>
         <button className="btn ghost danger" style={{ marginRight: 'auto' }} onClick={() => { const snap = { ...s }; update((st) => { st.saves = st.saves.filter((x) => x.id !== id); }); onClose(); toast('Deleted', { label: 'Undo', run: () => update((st) => { st.saves.unshift(snap); }) }); }}><Trash2 size={14} /> Delete</button>
-        <a className="btn" href={s.url} target="_blank" rel="noreferrer"><ExternalLink size={14} /> Open link</a>
+        {s.url && <a className="btn" href={s.url} target="_blank" rel="noreferrer"><ExternalLink size={14} /> Open link</a>}
         <button className="btn primary" onClick={onClose}>Done</button>
       </>}>
       <div className="stack">

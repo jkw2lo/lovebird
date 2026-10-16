@@ -30,10 +30,17 @@ function readBody(req, limit) {
 }
 
 // Write to a temp file and rename, so a crash mid-write never leaves a half-written plan.
-async function writeAtomic(file, data) {
-  const tmp = `${file}.${process.pid}.tmp`;
-  await fs.writeFile(tmp, data);
-  await fs.rename(tmp, file);
+// Writes are queued one at a time, so two quick saves can't trip over each other.
+let queue = Promise.resolve();
+function writeAtomic(file, data) {
+  const run = async () => {
+    const tmp = `${file}.${process.pid}.${Math.random().toString(36).slice(2)}.tmp`;
+    await fs.writeFile(tmp, data);
+    await fs.rename(tmp, file);
+  };
+  const next = queue.then(run, run);
+  queue = next.catch(() => {});
+  return next;
 }
 
 async function snapshotToday(dir, planFile) {
@@ -77,8 +84,7 @@ export function storage(dataDir) {
             res.setHeader('Content-Type', 'application/json');
             res.end(await fs.readFile(planFile));
           } catch {
-            res.statusCode = 404;
-            res.end('{}');
+            res.end('null'); // no plan saved yet
           }
           return;
         }

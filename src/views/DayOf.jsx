@@ -11,6 +11,12 @@ export default function DayOf() {
   const rows = [...state.dayof].sort((a, b) => (a.time || '99').localeCompare(b.time || '99'));
   const set = (id, patch) => update((s) => { Object.assign(s.dayof.find((r) => r.id === id), patch); });
   const contacts = state.vendors.filter((v) => v.status === 'booked');
+  const anchor = rows.find((r) => /^ceremony$/i.test(r.title.trim())) || rows.find((r) => /ceremony/i.test(r.title) && !/setup|set up/i.test(r.title));
+
+  // Moving the ceremony moves the whole day with it.
+  const toMin = (t) => { const [h, m] = (t || '0:0').split(':').map(Number); return h * 60 + m; };
+  const fromMin = (n) => { const x = ((n % 1440) + 1440) % 1440; return `${String(Math.floor(x / 60)).padStart(2, '0')}:${String(x % 60).padStart(2, '0')}`; };
+  const shiftAll = (delta) => update((s) => { for (const r of s.dayof) if (r.time) r.time = fromMin(toMin(r.time) + delta); });
 
   const add = () => {
     const last = rows[rows.length - 1];
@@ -30,6 +36,21 @@ export default function DayOf() {
         <button className="btn" onClick={() => window.print()} disabled={!rows.length}><Printer size={15} /> Print</button>
         <button className="btn primary" onClick={add}><Plus size={16} /> Add</button>
       </PageHead>
+
+      {anchor && (
+        <div className="card pad row wrap no-print" style={{ gap: 14 }}>
+          <div className="grow" style={{ minWidth: 220 }}>
+            <div style={{ fontWeight: 650 }}>Ceremony time</div>
+            <div className="small muted">Change it and everything else moves with it.</div>
+          </div>
+          <input type="time" className="input" style={{ width: 150, fontSize: 18 }} value={anchor.time}
+            onChange={(e) => e.target.value && shiftAll(toMin(e.target.value) - toMin(anchor.time))} aria-label="Ceremony time" />
+          <div className="row" style={{ gap: 4 }}>
+            <button className="btn sm" onClick={() => shiftAll(-30)}>−30 min</button>
+            <button className="btn sm" onClick={() => shiftAll(30)}>+30 min</button>
+          </div>
+        </div>
+      )}
 
       {rows.length === 0 ? (
         <div className="card">

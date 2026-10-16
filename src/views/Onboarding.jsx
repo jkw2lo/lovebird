@@ -60,7 +60,7 @@ export default function Onboarding() {
           <Field label={`About how many guests? ${w.guestEstimate}`}>
             <input type="range" min="10" max="350" step="5" value={w.guestEstimate} onChange={(e) => set({ guestEstimate: Number(e.target.value) })} />
           </Field>
-          <Field label="Total budget" hint={w.budget && w.guestEstimate ? `That's about ${money(w.budget / w.guestEstimate)} per guest. In the US, couples spend around $30,000–$36,000 on average, but it varies a lot by region.` : ''}>
+          <Field label="Total budget" hint={`${w.budget && w.guestEstimate ? `That's about ${money(w.budget / w.guestEstimate)} per guest. ` : ''}Not sure yet? Put a rough number; the plan's first steps include a budget builder that walks you through it.`}>
             <MoneyInput value={w.budget} onChange={(v) => set({ budget: v || 0 })} />
           </Field>
         </div>
