@@ -1,7 +1,8 @@
 // Whole-plan backups: one JSON file with everything, photos included.
 // The API key is left out.
 
-import { getAllImages, putImage, clearAll } from './db.js';
+import { getAllImages, clearAll } from './db.js';
+import { storePhoto } from './photos.js';
 import { getState, replaceState, initialState } from './store.js';
 import { download, dayString, today } from './util.js';
 
@@ -29,8 +30,8 @@ export async function importBackup(file) {
   if (backup.app !== 'lovebird' || !backup.state) throw new Error('That file is not a Lovebird backup.');
   for (const img of backup.images || []) {
     const blob = await (await fetch(img.dataUrl)).blob();
-    const { dataUrl, ...rest } = img;
-    await putImage({ ...rest, blob });
+    const { dataUrl, blob: _, ...rest } = img;
+    await storePhoto(blob, { ...rest, resize: false });
   }
   const apiKey = getState().settings.apiKey;
   await replaceState({ ...initialState(), ...backup.state, settings: { ...backup.state.settings, apiKey } });

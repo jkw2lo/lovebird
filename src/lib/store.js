@@ -1,15 +1,21 @@
-// App state: a single plain object, updated with immer and saved to IndexedDB
-// a moment after each change.
+// App state: a single plain object, updated with immer.
+//
+// Every change is saved twice: to the browser (IndexedDB) right away, and to
+// data/plan.json through the local server. On startup whichever copy is newer
+// wins, so clearing the browser, switching browsers or a missed save never loses
+// the plan. The API key stays in the browser only.
 
 import { useSyncExternalStore, useEffect, useState } from 'react';
 import { produce } from 'immer';
-import { loadState, saveState, getImage } from './db.js';
+import { loadState, saveState } from './db.js';
+import { getPhoto, syncPhotosToDisk } from './photos.js';
 
 export const DEFAULT_MODEL = 'claude-opus-5';
+export const SCHEMA_VERSION = 2;
 
 export function initialState() {
   return {
-    version: 1,
+    version: SCHEMA_VERSION,
     onboarded: false,
     wedding: {
       partner1: '', partner2: '', date: '', dateIdeas: '', city: '',
@@ -19,7 +25,7 @@ export function initialState() {
     customTasks: [],
     vendors: [],
     payments: [],
-    budget: { allocations: {}, extras: [] },
+    budget: { allocations: {}, extras: [], contributors: [] },
     guests: [],
     tables: [],
     saves: [],
@@ -28,19 +34,84 @@ export function initialState() {
     chat: [],
     settings: { apiKey: '', model: DEFAULT_MODEL },
     imports: [],
+    celebrated: [],
   };
+}
+
+// Brings a saved plan from any older version up to date. Add a step here
+// whenever the shape of the data changes, so old plans keep loading.
+function migrate(saved) {
+  const base = initialState();
+  const s = {
+    ...base, ...saved,
+    wedding: { ...base.wedding, ...saved.wedding },
+    settings: { ...base.settings, ...saved.settings },
+    budget: { ...base.budget, ...saved.budget },
+  };
+  // v1 → v2: budget contributors and celebrations were added (defaults above cover it).
+  s.version = SCHEMA_VERSION;
+  return s;
 }
 
 let state = null;
 const listeners = new Set();
 let saveTimer = null;
 
+// ---------- save status, for the little indicator in the sidebar
+
+let saveStatus = 'idle'; // 'idle' | 'saving' | 'saved' | 'browser-only'
+const statusListeners = new Set();
+function setStatus(next) {
+  if (next === saveStatus) return;
+  saveStatus = next;
+  statusListeners.forEach((fn) => fn());
+}
+export function useSaveStatus() {
+  return useSyncExternalStore((fn) => { statusListeners.add(fn); return () => statusListeners.delete(fn); }, () => saveStatus);
+}
+
+async function loadDisk() {
+  try {
+    const res = await fetch('/api/plan', { cache: 'no-store' });
+    if (!res.ok) return null;
+    const plan = await res.json();
+    return plan && plan.version ? plan : null;
+  } catch {
+    return null;
+  }
+}
+
+async function saveDisk(snapshot) {
+  const { settings, ...rest } = snapshot;
+  const body = JSON.stringify({ ...rest, settings: { ...settings, apiKey: '' } });
+  try {
+    const res = await fetch('/api/plan', { method: 'PUT', body, headers: { 'Content-Type': 'application/json' } });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function persist() {
+  const snapshot = { ...state, savedAt: Date.now() };
+  setStatus('saving');
+  await saveState(snapshot);
+  setStatus((await saveDisk(snapshot)) ? 'saved' : 'browser-only');
+}
+
 export async function boot() {
-  const saved = await loadState();
-  // Fill in any keys added since the plan was first saved.
-  const base = initialState();
-  state = saved ? { ...base, ...saved, wedding: { ...base.wedding, ...saved.wedding }, settings: { ...base.settings, ...saved.settings }, budget: { ...base.budget, ...saved.budget } } : base;
+  const [local, disk] = await Promise.all([loadState(), loadDisk()]);
+  let chosen = local;
+  if (disk && (!local || (disk.savedAt || 0) > (local.savedAt || 0))) {
+    chosen = { ...disk, settings: { ...disk.settings, apiKey: (local && local.settings && local.settings.apiKey) || '' } };
+  }
+  state = chosen ? migrate(chosen) : initialState();
   window.addEventListener('beforeunload', flush);
+  // Ask the browser not to clear our storage when disk space runs low.
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  // Bring both copies in line: write the winner everywhere, and copy photos to disk.
+  if (chosen) persist();
+  syncPhotosToDisk();
   return state;
 }
 
@@ -48,7 +119,7 @@ function flush() {
   if (saveTimer) {
     clearTimeout(saveTimer);
     saveTimer = null;
-    saveState(state);
+    persist();
   }
 }
 
@@ -60,16 +131,17 @@ export function update(recipe) {
   state = produce(state, recipe);
   listeners.forEach((fn) => fn());
   clearTimeout(saveTimer);
+  setStatus('saving');
   saveTimer = setTimeout(() => {
     saveTimer = null;
-    saveState(state);
-  }, 300);
+    persist();
+  }, 400);
 }
 
-export function replaceState(next) {
-  state = next;
+export async function replaceState(next) {
+  state = migrate(next);
   listeners.forEach((fn) => fn());
-  return saveState(state);
+  await persist();
 }
 
 function subscribe(fn) {
@@ -88,7 +160,7 @@ const urlCache = new Map();
 export async function imageUrl(id) {
   if (!id) return null;
   if (urlCache.has(id)) return urlCache.get(id);
-  const record = await getImage(id);
+  const record = await getPhoto(id);
   const url = record ? URL.createObjectURL(record.blob) : null;
   urlCache.set(id, url);
   return url;

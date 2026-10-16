@@ -240,6 +240,8 @@ button.chip.on { background: var(--accent-soft); color: var(--accent); border-co
 .modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 22px 18px; border-top: 1px solid var(--line); position: sticky; bottom: 0; background: var(--surface); }
 .drawer-wrap { position: fixed; inset: 0; z-index: 40; background: rgba(30, 20, 15, 0.25); animation: fade 0.12s; }
 .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(440px, 100%); background: var(--surface); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; z-index: 41; animation: slide 0.18s ease-out; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 1s linear infinite; }
 @keyframes fade { from { opacity: 0; } }
 @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
 @keyframes slide { from { transform: translateX(30px); opacity: 0; } }

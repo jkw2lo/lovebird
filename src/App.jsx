@@ -1,5 +1,5 @@
-import { House, ListChecks, Handshake, Wallet, Users, LayoutGrid, Bookmark, Clock, Settings as Gear, Bird } from 'lucide-react';
-import { useAppState } from './lib/store.js';
+import { House, ListChecks, Handshake, Wallet, Users, LayoutGrid, Bookmark, Clock, Settings as Gear, Bird, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { useAppState, useSaveStatus } from './lib/store.js';
 import { useRoute, Toaster } from './components/ui.jsx';
 import { allTasks, taskStatus, coupleName, daysToGo } from './lib/derive.js';
 import { fmtDate } from './lib/util.js';
@@ -78,7 +78,7 @@ export default function App() {
           <div className="nav-sep" />
           <a href="#/settings" className={section === 'settings' ? 'active' : ''}><Gear size={17} /> Settings</a>
         </nav>
-        <div className="sidebar-foot tiny muted" style={{ padding: '0 10px' }}>Everything is saved in this browser. Back it up from Settings.</div>
+        <div className="sidebar-foot"><SaveStatus /></div>
       </aside>
 
       <main className="main">
@@ -101,6 +101,23 @@ export default function App() {
 
       <Assistant />
       <Toaster />
+    </div>
+  );
+}
+
+function SaveStatus() {
+  const status = useSaveStatus();
+  if (status === 'browser-only') {
+    return (
+      <a href="#/settings" className="tiny row" style={{ padding: '0 10px', gap: 6, color: 'var(--warn)', textDecoration: 'none' }} title="The Lovebird server isn't reachable, so changes are only in this browser for now.">
+        <AlertTriangle size={14} /> Saved in this browser only
+      </a>
+    );
+  }
+  return (
+    <div className="tiny muted row" style={{ padding: '0 10px', gap: 6 }} title="Saved in this browser and in the data folder of the Lovebird project.">
+      {status === 'saving' ? <Loader2 size={14} className="spin" /> : <CheckCircle2 size={14} style={{ color: 'var(--accent-2)' }} />}
+      {status === 'saving' ? 'Saving…' : 'Saved to this computer'}
     </div>
   );
 }

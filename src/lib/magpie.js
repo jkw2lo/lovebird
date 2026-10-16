@@ -6,7 +6,7 @@
 // what came from it instead of adding duplicates.
 
 import { guessCategory, CATEGORY_BY_KEY } from '../data/categories.js';
-import { putImage } from './db.js';
+import { storePhoto } from './photos.js';
 import { update, getState } from './store.js';
 import { newId } from './util.js';
 
@@ -70,7 +70,7 @@ export async function applyImport(backup, choices, fileName = '') {
     const img = imgId && images.get(imgId);
     if (!img || !img.dataUrl) continue;
     if (!stored.has(imgId)) {
-      await putImage({ id: `mg_${imgId}`, blob: await dataUrlToBlob(img.dataUrl), width: img.width, height: img.height, from: 'magpie' });
+      await storePhoto(await dataUrlToBlob(img.dataUrl), { id: `mg_${imgId}`, from: 'magpie' });
       stored.add(imgId);
     }
     coverFor[item.id] = `mg_${imgId}`;

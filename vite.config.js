@@ -1,5 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { fileURLToPath } from 'node:url';
+import { storage, fromThisApp } from './server/storage.js';
 
 // Browsers can't read other sites' pages (CORS), so the dev/preview server
 // fetches a pasted link on the app's behalf and returns its title, photo and
@@ -8,6 +10,7 @@ const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (
 
 function unfurl() {
   const handler = async (req, res, next) => {
+    if ((req.url.startsWith('/api/image') || req.url.startsWith('/api/unfurl')) && !fromThisApp(req)) { res.statusCode = 403; res.end(); return; }
     if (req.url.startsWith('/api/image')) return proxyImage(req, res);
     if (!req.url.startsWith('/api/unfurl')) return next();
     const target = new URL(req.url, 'http://x').searchParams.get('url') || '';
@@ -81,7 +84,9 @@ function parseMeta(html, pageUrl) {
 }
 
 export default defineConfig({
-  plugins: [react(), unfurl()],
-  server: { port: 5190 },
+  plugins: [react(), unfurl(), storage(fileURLToPath(new URL('./data', import.meta.url)))],
+  // A fixed port matters: the browser's copy of your plan is tied to this exact address.
+  server: { port: 5190, strictPort: true },
+  preview: { port: 5190, strictPort: true },
   build: { chunkSizeWarningLimit: 1000 },
 });

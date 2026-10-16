@@ -1,7 +1,7 @@
 // Pasting a link: fetch its title and photo through the local server, and keep a copy of the photo.
 
-import { putImage } from './db.js';
-import { newId, normalizeUrl, hostOf } from './util.js';
+import { storePhoto } from './photos.js';
+import { normalizeUrl, hostOf } from './util.js';
 
 export async function unfurl(rawUrl) {
   const url = normalizeUrl(rawUrl);
@@ -24,9 +24,7 @@ export async function keepPhoto(imageUrl) {
     if (!res.ok) return null;
     const blob = await res.blob();
     if (!blob.type.startsWith('image/')) return null;
-    const id = newId('img_');
-    await putImage({ id, blob, sourceUrl: imageUrl });
-    return id;
+    return await storePhoto(blob, { sourceUrl: imageUrl });
   } catch {
     return null;
   }
@@ -34,7 +32,5 @@ export async function keepPhoto(imageUrl) {
 
 // From a file the user picked or dropped.
 export async function keepFile(file) {
-  const id = newId('img_');
-  await putImage({ id, blob: file, name: file.name });
-  return id;
+  return storePhoto(file, { name: file.name });
 }

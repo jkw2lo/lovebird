@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Download, Upload, KeyRound, Trash2 } from 'lucide-react';
-import { useAppState, update } from '../lib/store.js';
+import { useAppState, update, useSaveStatus } from '../lib/store.js';
 import { MODELS } from '../lib/ai.js';
 import { exportBackup, importBackup, resetEverything } from '../lib/backup.js';
 import { PageHead, Field, Text, MoneyInput, toast } from '../components/ui.jsx';
@@ -66,8 +66,10 @@ export default function Settings() {
       </section>
 
       <section className="card pad stack">
-        <h2>Backups</h2>
-        <p className="ink2 small">Your plan lives in this browser on this computer. Export a backup now and then, and keep it somewhere safe (it includes photos, but not your API key). You can also use it to move your plan to another computer.</p>
+        <h2>Where your plan is saved</h2>
+        <StorageInfo />
+        <div className="divider" style={{ margin: '4px 0' }} />
+        <p className="ink2 small">A backup file is one JSON file with everything, photos included (not your API key). Handy for moving to another computer or keeping a copy somewhere safe.</p>
         <div className="row wrap">
           <button className="btn" onClick={async () => { await exportBackup(); setStatus('Backup downloaded.'); }}><Download size={15} /> Export backup</button>
           <label className="btn"><Upload size={15} /> Restore from backup…<input type="file" accept=".json,application/json" hidden onChange={async (e) => {
@@ -86,6 +88,33 @@ export default function Settings() {
         </div>
         {status && <p className="small muted">{status}</p>}
       </section>
+    </div>
+  );
+}
+
+function StorageInfo() {
+  const status = useSaveStatus();
+  const [info, setInfo] = useState(null);
+  useEffect(() => {
+    (async () => {
+      const persisted = navigator.storage && navigator.storage.persisted ? await navigator.storage.persisted() : null;
+      const estimate = navigator.storage && navigator.storage.estimate ? await navigator.storage.estimate() : null;
+      setInfo({ persisted, used: estimate ? estimate.usage : null });
+    })();
+  }, [status]);
+  const mb = (n) => (n / 1024 / 1024).toFixed(n > 10 * 1024 * 1024 ? 0 : 1);
+  return (
+    <div className="stack tight small">
+      <p className="ink2">
+        Every change is saved in two places: in this browser, and as files in the <code>data</code> folder inside the Lovebird project
+        (<code>data/plan.json</code> and <code>data/photos</code>), with a copy of the plan from each of the last 30 days in <code>data/history</code>.
+        That folder is never uploaded to GitHub. If either copy is lost, the other one fills it back in the next time you open Lovebird.
+      </p>
+      <div className="row wrap" style={{ gap: 6 }}>
+        <span className={`chip ${status === 'browser-only' ? 'warn' : 'green'}`}>{status === 'browser-only' ? 'Data folder not reachable: browser only' : 'Data folder: saving'}</span>
+        {info && info.persisted !== null && <span className={`chip ${info.persisted ? 'green' : ''}`}>{info.persisted ? 'Browser storage: protected' : 'Browser storage: may be cleared if disk is full'}</span>}
+        {info && info.used !== null && <span className="chip">{mb(info.used)} MB used in this browser</span>}
+      </div>
     </div>
   );
 }

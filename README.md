@@ -27,9 +27,16 @@ Then open http://localhost:5190. (`npm start` builds and serves the production v
 
 ## Your data
 
-Everything is stored in this browser (IndexedDB) on this computer. Use **Settings → Export backup** now and then; the backup includes photos but not your API key, and **Restore from backup** brings it back on any computer.
+Every change is saved in two places:
 
-The only things that leave the browser: when you paste a link, the local server fetches that page and its photo; when you use the planner chat or Paste a quote, your message and a summary of your plan go to `api.anthropic.com`.
+- **In the browser** (IndexedDB), so the app is instant.
+- **As files in `data/`** in this folder, through the local server: `data/plan.json`, `data/photos/`, and a copy of the plan from each of the last 30 days in `data/history/`.
+
+When Lovebird starts, it loads whichever copy is newer. So clearing your browser, switching browsers, or a save that didn't go through doesn't lose anything. `data/` is in `.gitignore`: your wedding details never go to GitHub. To move to another computer, copy the `data` folder along with the project, or use **Settings → Export backup**.
+
+Photos are shrunk to at most 1600px when saved (a 5 MB phone photo becomes a few hundred KB). Your API key is kept in the browser only, never in `data/` or backups.
+
+What leaves your computer: when you paste a link, the local server fetches that page and its photo; when you use the planner chat or Paste a quote, your message and a summary of your plan go to `api.anthropic.com`. The local server only answers Lovebird itself, not other websites open in the same browser.
 
 ## Code
 
@@ -38,11 +45,13 @@ src/
   data/plan.js         the roadmap: phases, steps, timing, advice
   data/categories.js   vendor kinds, budget splits, compare fields, questions
   data/dayof.js        day-of timeline template
-  lib/store.js         app state (immer) saved to IndexedDB
+  lib/store.js         app state (immer), saved to IndexedDB and data/, with migrations
+  lib/photos.js        photo shrinking and disk mirroring
   lib/derive.js        due dates, what's next, budget and guest totals
   lib/magpie.js        Magpie backup import
   lib/ai.js            planner chat and quote reading (Claude)
   lib/guests.js        guest list parsing and CSV
   views/               one file per page
+server/storage.js      saves the plan and photos to data/
 vite.config.js         dev server, plus /api/unfurl and /api/image for link previews
 ```
