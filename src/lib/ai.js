@@ -59,6 +59,7 @@ export function planSnapshot(state) {
   lines.push(`Estimated guests: ${w.guestEstimate}; total budget: $${Number(w.budget || 0).toLocaleString()}`);
   if (w.style) lines.push(`Style: ${w.style}`);
   if (w.priorities && w.priorities.length) lines.push(`Top priorities: ${w.priorities.join(', ')}`);
+  if (w.hobbies && w.hobbies.length) lines.push(`Their hobbies: ${w.hobbies.join(', ')} (see the Extras page for hobby ideas)`);
   if (w.notes) lines.push(`Notes: ${w.notes}`);
 
   const phase = currentPhase(state);

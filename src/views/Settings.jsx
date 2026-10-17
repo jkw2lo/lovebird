@@ -6,6 +6,7 @@ import { exportBackup, importBackup, resetEverything } from '../lib/backup.js';
 import { PageHead, Field, Text, MoneyInput, toast } from '../components/ui.jsx';
 import MagpieImport from '../components/MagpieImport.jsx';
 import { STYLES, PRIORITIES } from './Onboarding.jsx';
+import { HOBBIES } from '../data/extras.js';
 import { fmtDate, HAS_SERVER } from '../lib/util.js';
 
 export default function Settings() {
@@ -37,6 +38,10 @@ export default function Settings() {
         <div className="stack tight">
           <span className="label">Top priorities (up to 3)</span>
           <div className="choice-grid">{PRIORITIES.map((p) => <button key={p} type="button" className={`chip ${w.priorities.includes(p) ? 'on' : ''}`} onClick={() => set({ priorities: w.priorities.includes(p) ? w.priorities.filter((x) => x !== p) : w.priorities.length >= 3 ? w.priorities : [...w.priorities, p] })}>{p}</button>)}</div>
+        </div>
+        <div className="stack tight">
+          <span className="label">Your hobbies (for extras ideas)</span>
+          <div className="choice-grid">{HOBBIES.map((h) => { const on = (w.hobbies || []).includes(h.key); return <button key={h.key} type="button" className={`chip ${on ? 'on' : ''}`} onClick={() => set({ hobbies: on ? w.hobbies.filter((x) => x !== h.key) : [...(w.hobbies || []), h.key] })}>{h.emoji} {h.label}</button>; })}</div>
         </div>
         <Field label="Anything else your planner should know" hint="Traditions, family situations, must-haves, things you definitely don't want.">
           <Text multiline className="textarea" rows={3} value={w.notes} onChange={(notes) => set({ notes })} />

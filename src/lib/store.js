@@ -20,7 +20,7 @@ export function initialState() {
     onboarded: false,
     wedding: {
       partner1: '', partner2: '', date: '', dateIdeas: '', city: '',
-      guestEstimate: 120, budget: 35000, style: '', priorities: [], notes: '',
+      guestEstimate: 120, budget: 35000, style: '', priorities: [], hobbies: [], notes: '',
     },
     tasks: {},
     customTasks: [],

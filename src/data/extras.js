@@ -5,9 +5,21 @@
 // points for budgeting, not quotes. cost is null where it depends too much on
 // what you choose to give a fair range.
 //
-// cost.unit: 'flat' (one price for the event), 'per-guest', or 'per-hour' (with hours).
+// cost.unit: 'flat' (one price for the event), 'per-guest' (cost.guests overrides
+// your guest count, e.g. a rehearsal dinner), or 'per-hour' (with hours).
+// diy: true means you make it yourself; picking it adds a step to your plan
+// (in diyPhase, by diyBefore days out) instead of a vendor.
+// hobbies: which of your hobbies an idea is built around.
+
+export const HOBBIES = [
+  { key: 'watercolour', label: 'Watercolour', emoji: '🖌️' },
+  { key: 'cooking', label: 'Cooking & recipes', emoji: '🍳' },
+  { key: 'stationery', label: 'Stationery & journaling', emoji: '✒️' },
+  { key: 'leather', label: 'Leathercraft & sewing', emoji: '🧵' },
+];
 
 export const EXTRA_GROUPS = [
+  { key: 'yours', label: 'For your hobbies', emoji: '💛' },
   { key: 'treats', label: 'Food & drink stations', emoji: '🍡' },
   { key: 'fun', label: 'Games & entertainment', emoji: '🎮' },
   { key: 'keepsakes', label: 'Keepsakes', emoji: '📸' },
@@ -16,6 +28,151 @@ export const EXTRA_GROUPS = [
 ];
 
 export const EXTRAS = [
+  // ---------- for your hobbies
+  // Watercolour
+  {
+    id: 'live-watercolour-guests', group: 'yours', hobbies: ['watercolour'], emoji: '🖌️', name: 'Live watercolour guest portraits',
+    blurb: 'An artist paints quick watercolour portraits of guests during the reception: favours they’ll actually keep.',
+    cost: { low: 1550, high: 3200, unit: 'flat', text: 'Toronto: about $1,550 for 4 hours to $1,900–$3,200 for guest portrait collections; live sketching from about $800 for 2 hours' },
+    lead: '4–6 months ahead',
+    tips: ['Ask to see their speed: some do 10–15 portraits an hour.', 'Have them paint the two of you first, during cocktail hour.'],
+    search: 'live watercolour guest portraits wedding',
+    sources: [{ label: 'Victoria’s Visuals', url: 'https://victoriasvisuals.com/live-guest-painting' }, { label: 'Greyish Teal guest portraits', url: 'https://greyishteal.com/en-us/pages/live-guest-portraits' }, { label: 'Jenny Zhang live illustration', url: 'https://jennyzhangillustrations.com/live-sketching-1' }],
+  },
+  {
+    id: 'watercolour-venue-invites', group: 'yours', hobbies: ['watercolour', 'stationery'], diy: true, diyPhase: 'look', diyBefore: 175, emoji: '🏛️', name: 'Paint your venue for the invitations',
+    blurb: 'Paint the venue (or your city skyline) yourself and use it on the save-the-dates, invitations and signs.',
+    cost: { low: 175, high: 435, unit: 'flat', text: 'Doing it yourself costs paper and a scan; commissioning a painted venue illustration runs about $175–$435' },
+    lead: 'Start 6–7 months out',
+    tips: ['Paint larger than you need, then have it scanned at a print shop.', 'One painting can carry through invitations, menus, signs and the website.'],
+    search: null,
+    sources: [{ label: 'Custom venue illustration pricing', url: 'https://sweetdatesprints.com/products/custom-illustration-destination-wedding-invite-illustrated-watercolor-hand-drawn-venue-invitation-65' }, { label: 'Original venue painting commissions', url: 'https://aquahuedesigns.com/products/original-wedding-invitation-venue-illustration-commission-watercolor-and-ink-building-destination-save-the-date-painting-by-tonja-wilcox-deposit' }],
+  },
+  {
+    id: 'painted-place-cards', group: 'yours', hobbies: ['watercolour', 'stationery'], diy: true, diyPhase: 'invite', diyBefore: 45, emoji: '🃏', name: 'Hand-painted place cards & menus',
+    blurb: 'A soft wash or a tiny botanical on every place card, menu or table number.',
+    cost: null, costNote: 'Paper and paint. Budget time more than money: a minute or two per card.',
+    lead: 'Start 2 months out',
+    tips: ['Paint the washes in batches weeks ahead, and letter the names once the seating chart is final.', 'Use cold-press card stock so it doesn’t buckle.'],
+    search: null, sources: [],
+  },
+  {
+    id: 'watercolour-guestbook', group: 'yours', hobbies: ['watercolour'], diy: true, diyPhase: 'invite', diyBefore: 40, emoji: '🎨', name: 'Paint-a-swatch guest book',
+    blurb: 'Guests add a brushstroke, a swatch or a tiny painting to a shared page that becomes art for your wall.',
+    cost: null, costNote: 'A pad of cold-press paper, a travel palette and a few water brushes.',
+    lead: 'Set up 1 month out',
+    tips: ['Lightly pencil a shape (a tree, your initials) for guests to fill with colour.', 'Water brushes mean no water cups to knock over.'],
+    search: null, sources: [],
+  },
+
+  // Cooking & recipes
+  {
+    id: 'recipe-guestbook', group: 'yours', hobbies: ['cooking', 'stationery'], diy: true, diyPhase: 'invite', diyBefore: 50, emoji: '📇', name: 'Recipe-card guest book',
+    blurb: 'Guests write a favourite recipe or food memory on a card; afterwards you bind them into a cookbook.',
+    cost: { low: 13, high: 50, unit: 'flat', text: 'Printed cards and a box, then about $13–$50 per bound copy (Blurb and Mixbook) for the family cookbook afterwards' },
+    lead: 'Start 2 months out',
+    tips: ['Send a few cards with the invitations so family can fill them in properly.', 'Leave a "recipe I can’t live without" prompt for guests who don’t cook.'],
+    search: null,
+    sources: [{ label: 'Blurb cookbooks', url: 'https://www.blurb.com/cookbooks' }, { label: 'Mixbook recipe books', url: 'https://www.mixbook.com/recipe-cookbook-photo-books' }],
+  },
+  {
+    id: 'family-recipe-menu', group: 'yours', hobbies: ['cooking'], diy: true, diyPhase: 'finish', diyBefore: 110, emoji: '🥘', name: 'Your family recipe on the menu',
+    blurb: 'Ask the caterer to make a dish from each family, or the meal you two always cook together.',
+    cost: null, costNote: 'Usually no extra cost; bring the recipe to your tasting.',
+    lead: 'Raise it at the menu tasting',
+    tips: ['Name it on the menu ("Grandma’s dumplings").', 'Offer to cook it for the chef so they can taste the real thing.'],
+    search: null, sources: [],
+  },
+  {
+    id: 'cooking-class-welcome', group: 'yours', hobbies: ['cooking'], emoji: '👩‍🍳', name: 'Cooking class welcome party',
+    blurb: 'Instead of a stiff rehearsal dinner, everyone cooks a meal together with a chef the night before.',
+    cost: { low: 65, high: 170, unit: 'per-guest', guests: 30, text: 'Toronto group classes about $65–$170 per person for 10–80 guests (the estimate assumes 30)' },
+    lead: '2–3 months ahead',
+    tips: ['Pick a cuisine that means something to you both.', 'Pasta or dumplings work well for mixed skill levels.'],
+    search: 'private group cooking class',
+    sources: [{ label: 'The Chef Upstairs', url: 'https://thechefupstairs.com/' }, { label: 'My Place for Dinner', url: 'https://myplacefordinner.com/' }, { label: 'Paula’s Gourmet Table', url: 'https://paulazavalachef.com/cherry-services/privateclasses/' }],
+  },
+  {
+    id: 'homemade-favours', group: 'yours', hobbies: ['cooking'], diy: true, diyPhase: 'invite', diyBefore: 30, emoji: '🫙', name: 'Homemade edible favours',
+    blurb: 'Small jars of your jam, chili crisp, spice blend or cookies, with a label you designed.',
+    cost: null, costNote: 'Ingredients, jars and labels; plan a weekend of production.',
+    lead: 'Make 3–4 weeks out',
+    tips: ['Choose something shelf-stable, and check your venue allows outside food as favours.', 'Put the recipe on the back of the label.'],
+    search: null, sources: [],
+  },
+
+  // Stationery & journaling
+  {
+    id: 'wax-seal-station', group: 'yours', hobbies: ['stationery'], diy: true, diyPhase: 'invite', diyBefore: 40, emoji: '🕯️', name: 'Letter-writing & wax seal station',
+    blurb: 'Guests write you a letter to open on an anniversary and seal it with your custom wax stamp.',
+    cost: { low: 30, high: 60, unit: 'flat', text: 'A custom wax seal stamp with wax is about $30–$60; add nice paper and envelopes' },
+    lead: 'Order the stamp 1–2 months out',
+    tips: ['Label envelopes "open on our 1st / 5th / 10th anniversary".', 'Use a glue-gun wax gun instead of a flame at a busy party.'],
+    search: null,
+    sources: [{ label: 'Stamptitude custom wax seals', url: 'https://stamptitude.com/products/custom-wax-seal-stamp' }, { label: 'Olive Paperie custom kit', url: 'https://olivepaperieco.com/products/custom-wax-seal-stamp-kit' }],
+  },
+  {
+    id: 'journal-guestbook', group: 'yours', hobbies: ['stationery'], diy: true, diyPhase: 'invite', diyBefore: 35, emoji: '📔', name: 'Journal guest book with prompts',
+    blurb: 'A blank journal with prompt cards, washi tape, stickers and a stamp so guests can decorate their page.',
+    cost: null, costNote: 'A good journal, prompt cards and a small sticker and washi kit.',
+    lead: 'Set up 1 month out',
+    tips: ['Tape in photo booth prints as the night goes on.', 'Prompts help: "best advice", "a date night idea", "where we met you".'],
+    search: null, sources: [],
+  },
+  {
+    id: 'live-calligraphy', group: 'yours', hobbies: ['stationery', 'leather'], emoji: '✒️', name: 'Live calligraphy & engraving',
+    blurb: 'A calligrapher writes or engraves guests’ names on glasses, perfume bottles, place cards or leather tags while they watch.',
+    cost: { low: 300, high: 300, unit: 'per-hour', hours: 3, text: 'Toronto: on-site calligraphy and engraving from about $300 per hour; elsewhere packages run $1,500+ for 4 hours. About 30–45 items an hour' },
+    lead: '3–4 months ahead',
+    tips: ['Pair it with the favour: engraved glasses double as drinkware for the night.', 'JW Lettering in Toronto also does live hot-foil on leather tags.'],
+    search: 'live calligraphy engraving wedding',
+    sources: [{ label: 'A Grateful Note', url: 'https://www.agratefulnote.com/custom-wedding-calligraphy-service.html' }, { label: 'JW Lettering (Toronto)', url: 'https://jwlettering.com/' }, { label: 'A Handful of Letters pricing', url: 'https://www.ahandfulofletters.com/calligraphy-pricing' }],
+  },
+
+  // Leathercraft & sewing
+  {
+    id: 'leather-favours', group: 'yours', hobbies: ['leather'], diy: true, diyPhase: 'finish', diyBefore: 100, emoji: '🔑', name: 'Hand-stitched leather favours',
+    blurb: 'Keychains, luggage tags or bookmarks you cut and stitch, stamped with your initials and the date.',
+    cost: null, costNote: 'Leather, thread and hardware; your time is the real cost, so start early.',
+    lead: 'Start 3–4 months out',
+    tips: ['Make templates and batch-cut everything in one session.', 'Make 10% extra for mistakes and late additions.'],
+    search: null, sources: [],
+  },
+  {
+    id: 'live-leather-stamping', group: 'yours', hobbies: ['leather'], emoji: '🏷️', name: 'Live leather stamping station',
+    blurb: 'A pro hot-stamps or foils guests’ initials onto leather tags, keychains or card holders on the spot.',
+    cost: { low: 450, high: 1500, unit: 'flat', text: 'From about $450 for a 2-hour station to $1,500+ for 4 hours with heat-foil embossing (US pricing); stamps about 40–60 pieces an hour' },
+    lead: '2–3 months ahead',
+    tips: ['Supply your own hand-stitched blanks and have them stamp the names.', 'Ask whether blanks are included or extra.'],
+    search: 'live leather stamping hot foil event',
+    sources: [{ label: 'Auralasting live engraving', url: 'https://auralasting.com/pages/live-engraving' }, { label: 'A Handful of Letters', url: 'https://www.ahandfulofletters.com/calligraphy-pricing' }, { label: 'Corium USA live stamping', url: 'https://coriumusa.com/pages/on-site-live-stamping' }],
+  },
+  {
+    id: 'live-embroidery', group: 'yours', hobbies: ['leather'], emoji: '🪡', name: 'Live embroidery station',
+    blurb: 'Initials or a tiny motif stitched onto napkins, totes, hats or handkerchiefs while guests wait.',
+    cost: { low: 1000, high: 3000, unit: 'flat', text: 'From about $1,000 for a 4-hour weekend station to $2,000–$3,000 (US pricing); about 20–30 items per machine an hour' },
+    lead: '2–3 months ahead',
+    tips: ['Embroidered handkerchiefs are a lovely favour for parents.', 'Pick one simple design so the line moves.'],
+    search: 'live embroidery event station',
+    sources: [{ label: 'Kit’s Threads events', url: 'https://kitsthreads.com/pages/embroidery-events' }, { label: 'Live embroidery cost breakdown', url: 'https://liveembroideryevents.com/blog/live-embroidery-event-cost-breakdown/' }],
+  },
+  {
+    id: 'stitched-outfit-detail', group: 'yours', hobbies: ['leather'], diy: true, diyPhase: 'finish', diyBefore: 90, emoji: '🧵', name: 'A stitched detail in your outfits',
+    blurb: 'Your initials and date embroidered inside the dress or jacket lining, or a patch of family fabric sewn in.',
+    cost: null, costNote: 'Do it yourself, or ask your tailor at a fitting (usually a small alteration fee).',
+    lead: 'Before your final fitting',
+    tips: ['Coordinate with your tailor so it’s done before the last fitting.', 'A scrap of a parent’s wedding outfit makes a meaningful patch.'],
+    search: null, sources: [],
+  },
+  {
+    id: 'handmade-ring-box', group: 'yours', hobbies: ['leather'], diy: true, diyPhase: 'finish', diyBefore: 90, emoji: '💍', name: 'Handmade ring box or guest book cover',
+    blurb: 'A leather ring box, ring pillow or a stitched leather cover for the guest book.',
+    cost: null, costNote: 'Leather and hardware; one weekend project.',
+    lead: 'Finish 2 months out',
+    tips: ['It will be in the ring photos, so pick a colour that photographs well.'],
+    search: null, sources: [],
+  },
+
   // ---------- food & drink
   {
     id: 'bubble-tea', group: 'treats', emoji: '🧋', name: 'Bubble tea bar',
@@ -61,6 +218,33 @@ export const EXTRAS = [
     tips: ['Espresso martinis are a fun upgrade if the bar can join in.', 'Check what power the machine needs.'],
     search: 'espresso cart wedding',
     sources: [{ label: 'CostHelper: espresso carts', url: 'https://weddings.costhelper.com/espresso-cart-rental.html' }, { label: 'Toronto Event Rentals', url: 'https://www.torontoeventrentals.com/Coffee-Cart-Rentals/' }],
+  },
+  {
+    id: 'grazing-table', group: 'treats', emoji: '🧀', name: 'Grazing table',
+    blurb: 'A long table covered in cheeses, charcuterie, fruit, breads and dips for cocktail hour.',
+    cost: { low: 28, high: 50, unit: 'per-guest', text: 'Toronto grazing tables about $28–$50 per person depending on the package' },
+    lead: '1–2 months ahead',
+    tips: ['It can replace passed appetizers, not just add to them.', 'Ask for labels so guests with allergies can tell what\u2019s what.'],
+    search: 'grazing table catering',
+    sources: [{ label: 'Design & Graze packages', url: 'https://designandgraze.com/packages' }, { label: 'D Living packages', url: 'https://dliving.ca/packages' }],
+  },
+  {
+    id: 'oyster-bar', group: 'treats', emoji: '🦪', name: 'Oyster bar',
+    blurb: 'Oysters shucked to order on ice, with mignonette and lemon.',
+    cost: { low: 800, high: 4000, unit: 'flat', text: 'A raw bar station about $800–$1,500; a dedicated shucker more like $2,000–$4,000 (US pricing); or roughly $8–$15 per guest' },
+    lead: '1–2 months ahead',
+    tips: ['Ask your caterer first; many can add a raw bar.', 'Best at cocktail hour, outdoors or near the bar.'],
+    search: 'oyster shucker for events',
+    sources: [{ label: 'The Knot: oyster shuckers', url: 'https://www.theknot.com/content/oyster-shucker-wedding' }, { label: 'Oyster bar on a budget', url: 'https://theshellfishaffair.com/blogs/news/how-to-add-an-oyster-bar-to-your-wedding-without-breaking-the-bank' }],
+  },
+  {
+    id: 'cotton-candy', group: 'treats', emoji: '🍭', name: 'Cotton candy machine',
+    blurb: 'Spun-to-order cotton candy, a cheap and very cheerful late-night treat.',
+    cost: { low: 75, high: 200, unit: 'flat', text: 'About $75–$200 for the day in the GTA, usually with sugar and cones for 30–75 servings' },
+    lead: '2–4 weeks ahead',
+    tips: ['Full-service rentals include someone to spin it.', 'Coloured sugar can match your palette.'],
+    search: 'cotton candy machine rental',
+    sources: [{ label: 'Cotton candy rental prices (GTA)', url: 'https://www.themaineventservices.ca/post/cotton-candy-machine-rental-prices-guide' }, { label: 'Party Box TO', url: 'https://partyboxto.com/products/cotton-candy-machine-full-service' }],
   },
   {
     id: 'signature-drinks', group: 'treats', emoji: '🍸', name: 'Signature cocktail & mocktail',
@@ -109,6 +293,24 @@ export const EXTRAS = [
     sources: [{ label: 'The Knot: tarot at weddings', url: 'https://www.theknot.com/content/tarot-card-reader-wedding' }, { label: 'Event tarot costs', url: 'https://eventtarot.com/tarot-reader-cost-statistics' }],
   },
   {
+    id: 'silent-disco', group: 'fun', emoji: '🎧', name: 'Silent disco',
+    blurb: 'Wireless headphones with two or three channels, so the party can keep going after noise curfews.',
+    cost: { low: 430, high: 3500, unit: 'flat', text: 'About $4–$7 per headset plus $65–$100 per transmitter; wedding packages $430–$3,500 depending on guest count' },
+    lead: '1–2 months ahead',
+    tips: ['Great for venues with an 11pm music cutoff or an after-party.', 'Your DJ can run one channel; playlists can run the others.'],
+    search: 'silent disco headphone rental',
+    sources: [{ label: 'Silent disco pricing guide 2026', url: 'https://www.quietevents.com/blogs/quiet-events-blog/silent-disco-rental-pricing-guide-2026' }, { label: 'HUSHconcerts', url: 'https://hushconcerts.com/silent-disco-rentals/' }],
+  },
+  {
+    id: 'henna', group: 'fun', emoji: '🌿', name: 'Henna artist for guests',
+    blurb: 'Small henna designs for guests during cocktail hour or the mehndi.',
+    cost: { low: 120, high: 280, unit: 'per-hour', hours: 3, text: 'About $120–$280 per hour in Toronto (often a 2–3 hour minimum), or $10–$25 per guest for simple designs' },
+    lead: '1–2 months ahead',
+    tips: ['Simple designs keep the line moving.', 'Give guests a minute to dry before they hug anyone.'],
+    search: 'henna artist events',
+    sources: [{ label: 'Henna costs (2026)', url: 'https://fash.com/costs/henna-tattoo-prices' }, { label: 'GigSalad: Toronto henna artists', url: 'https://www.gigsalad.com/Variety/henna-tattoo-artist/ON/Toronto' }],
+  },
+  {
     id: 'lawn-games', group: 'fun', emoji: '🎯', name: 'Lawn games',
     blurb: 'Giant Jenga, cornhole, croquet or bocce for an outdoor cocktail hour.',
     cost: null, costNote: 'Usually an inexpensive add-on from rental companies, or borrow from friends.',
@@ -144,6 +346,16 @@ export const EXTRAS = [
     tips: ['Decide the moment you want painted: first dance, ceremony, or the room.', 'Guests love watching it come together.'],
     search: 'live wedding painter',
     sources: [{ label: 'Live wedding painter costs', url: 'https://fash.com/costs/live-wedding-painter-cost' }],
+  },
+
+  {
+    id: 'perfume-bar', group: 'keepsakes', emoji: '🌸', name: 'Perfume bar',
+    blurb: 'A perfumer helps guests blend a small bottle of their own scent, labelled with your names.',
+    cost: { low: 1750, high: 2900, unit: 'flat', text: 'About $1,750 (50 guests) to $2,250 (100 guests) for 3 hours, or around $35 per person; premium experiences $2,900+ (US pricing)' },
+    lead: '2–3 months ahead',
+    tips: ['Put it somewhere calm, away from the food.', 'Engraved bottles make it an instant favour.'],
+    search: 'perfume bar for events',
+    sources: [{ label: 'House of Enfleurage scent bar', url: 'https://www.houseofenfleurage.com/pages/the-scent-bar-a-botanical-perfume-experience' }, { label: 'Gavin Luxe perfume bar', url: 'https://gavinluxe.com/pages/the-haus-bar-by-gavin-luxe-mobile-perfume-experience-custom-fragrance-bar' }],
   },
 
   // ---------- big moments & traditions
@@ -216,7 +428,10 @@ export const EXTRA_BY_ID = Object.fromEntries(EXTRAS.map((e) => [e.id, e]));
 export function extraEstimate(extra, guests) {
   const c = extra.cost;
   if (!c) return null;
-  if (c.unit === 'per-guest') return [Math.max(c.min || 0, c.low * guests * 0.7), Math.max(c.min || 0, c.high * guests * 0.7)];
+  if (c.unit === 'per-guest') {
+    const n = c.guests || guests * (extra.id === 'late-night' ? 0.7 : 1); // late-night food: plan for ~70% of guests
+    return [Math.max(c.min || 0, c.low * n), Math.max(c.min || 0, c.high * n)];
+  }
   if (c.unit === 'per-hour') return [c.low * (c.hours || 1), c.high * (c.hours || 1)];
   return [c.low, c.high];
 }
