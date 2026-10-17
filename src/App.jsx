@@ -1,4 +1,4 @@
-import { House, ListChecks, Handshake, Wallet, Users, LayoutGrid, Bookmark, Clock, Settings as Gear, Bird, Plus, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { House, ListChecks, Handshake, Wallet, Users, LayoutGrid, Bookmark, Clock, Settings as Gear, Bird, Plus, PartyPopper, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 import { useAppState, useSaveStatus } from './lib/store.js';
 import { useRoute, Toaster } from './components/ui.jsx';
 import { allTasks, taskStatus, coupleName, daysToGo } from './lib/derive.js';
@@ -18,6 +18,7 @@ import Seating from './views/Seating.jsx';
 import Saves from './views/Saves.jsx';
 import DayOf from './views/DayOf.jsx';
 import Settings from './views/Settings.jsx';
+import Extras from './views/Extras.jsx';
 
 const NAV = [
   { path: '', label: 'Today', short: 'Today', icon: House },
@@ -27,6 +28,7 @@ const NAV = [
   { path: 'guests', label: 'Guests', short: 'Guests', icon: Users },
   { path: 'seating', label: 'Seating', short: 'Seating', icon: LayoutGrid },
   { path: 'saves', label: 'Saves', short: 'Saves', icon: Bookmark },
+  { path: 'extras', label: 'Extras', short: 'Extras', icon: PartyPopper },
   { path: 'dayof', label: 'Day-of timeline', short: 'Day-of', icon: Clock },
 ];
 
@@ -42,6 +44,7 @@ function routeView(parts, query) {
     case 'seating': return <Seating />;
     case 'saves': return <Saves board={b} />;
     case 'dayof': return <DayOf />;
+    case 'extras': return <Extras />;
     case 'settings': return <Settings />;
     default: return <Home />;
   }
@@ -91,6 +94,7 @@ export default function App() {
           <a className="brand" href="#/"><span className="brand-mark"><Bird size={15} /></span><span className="brand-name">Lovebird</span></a>
           <span className="grow" />
           <button className="btn primary icon" aria-label="Add something" onClick={() => openQuickAdd()}><Plus size={19} /></button>
+          <a href="#/extras" className="btn ghost icon" aria-label="Extras"><PartyPopper size={19} /></a>
           <a href="#/dayof" className="btn ghost icon" aria-label="Day-of timeline"><Clock size={19} /></a>
           <a href="#/settings" className="btn ghost icon" aria-label="Settings"><Gear size={19} /></a>
         </header>

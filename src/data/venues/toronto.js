@@ -1,6 +1,6 @@
 // Toronto wedding venues, researched October 2026. See ../venues.js for how prices work.
 
-import { wiki, site } from './photos.js';
+import { wiki, site, commons } from './photos.js';
 
 const SRC = {
   weddingwire: (path) => ({ label: 'WeddingWire.ca', url: `https://www.weddingwire.ca/${path}` }),
@@ -444,6 +444,80 @@ export const TORONTO = {
       website: 'https://alorestaurant.com/privatediningandevents/',
       image: null,
       sources: [{ label: 'Alo private dining', url: 'https://alorestaurant.com/privatediningandevents/' }, { label: 'EventSource: Alo Salon', url: 'https://www.eventsource.ca/alo-salon' }, { label: 'Alo Food Group events', url: 'https://alofoodgroup.com/events/' }],
+    },
+
+    // ---------- Toronto Island and the Distillery District (researched October 2026)
+    {
+      id: 'rectory', name: 'The Rectory Café', area: 'Ward’s Island (Toronto Island)', type: 'restaurant', styles: ['Garden', 'Boho', 'Romantic', 'Intimate'],
+      view: 'Lake Ontario, with the skyline across the water',
+      seated: 130, standing: null, setting: 'both', ceremony: null, catering: 'in-house',
+      price: { model: 'rental', low: 250, high: 2000, text: 'Room fee reported at $250–$2,000 by day and season (older report), plus their custom menu; the estimate adds typical catering' },
+      summary: 'A cottage-style café in a former rectory on Ward’s Island, with a lakeside patio and gardens.',
+      highlights: ['Feels like a getaway, 15 minutes from downtown', 'Lakeside patio seats about 130', 'Custom wedding menus'],
+      considerations: ['Guests come by the Ward’s Island ferry; plan around the last boat', 'Indoors seats about 50, so bigger dinners rely on good weather'],
+      website: 'https://www.yelp.ca/biz/the-rectory-caf%C3%A9-toronto-3',
+      image: commons('3/30/Toronto_Skyline_Panorama_from_Ward%27s_Island%2C_June_20_2026_%2801%29.jpg', 'CC BY-SA 4.0', 'The skyline from Ward’s Island'),
+      sources: [{ label: 'Toronto Life wedding guide', url: 'https://torontolife.com/style/toronto-wedding-venues/' }, { label: 'Sash & Satin', url: 'http://sashandsatin.com/wedding-vendor/the-rectory-cafe/' }],
+    },
+    {
+      id: 'rcyc', name: 'Royal Canadian Yacht Club (Island Clubhouse)', area: 'Centre Island (Toronto Island)', type: 'waterfront', styles: ['Classic', 'Romantic', 'Garden'],
+      view: 'The harbour and skyline from the verandah',
+      seated: 225, standing: null, setting: 'both', ceremony: true, catering: 'in-house',
+      price: { model: 'per-person', low: 140, high: 190, siteFee: [4000, 6000], text: 'Food and drink packages about $140–$190 per person plus a venue fee of about $4,000–$6,000; May to September only' },
+      summary: 'A historic island clubhouse with nautical rooms, a willow tree for ceremonies, and a verandah facing the city.',
+      highlights: ['Ceremony under the willow tree', 'Dinner upstairs with verandah views', 'Rooms for up to about 225'],
+      considerations: ['Weddings run May to September only', 'Ask whether you need a member to sponsor the booking, and how guests get across'],
+      website: 'https://rcyc.ca/Occasions/Weddings',
+      image: commons('5/5f/Toronto_skyline_from_Wards_Island_%281%29.jpg', 'CC BY 2.0', 'The view across the harbour from the island'),
+      sources: [{ label: 'RCYC weddings', url: 'https://rcyc.ca/Occasions/Weddings' }, { label: 'RCYC wedding guide (cost)', url: 'https://everafterphotographers.com/venues/rcyc-wedding-toronto-island/' }],
+    },
+    {
+      id: 'sassafraz', name: 'Sassafraz', area: 'Yorkville', type: 'restaurant', styles: ['Classic', 'Romantic', 'Garden'],
+      foodie: true,
+      seated: 150, standing: 200, setting: 'both', ceremony: null, catering: 'in-house',
+      price: { model: 'per-person', low: 159, high: 179, text: 'Packages about $159–$179 per person; no rental fee, but minimum spends apply' },
+      summary: 'A Yorkville institution with a glass-roofed garden room, a famous patio and private rooms upstairs.',
+      highlights: ['Main room seats about 150', 'Private rooms for 32 or 72', 'No rental fee'],
+      considerations: ['Minimum spends apply', 'Yorkville parking is pricey'],
+      website: 'https://www.sassafraz.ca/',
+      image: { url: 'https://upload.wikimedia.org/wikipedia/commons/3/3e/Sassafraz_Toronto_Yorkville_May_2011.jpg', credit: 'Wikimedia Commons (CC BY 2.0)', creditUrl: 'https://commons.wikimedia.org/wiki/File:Sassafraz_Toronto_Yorkville_May_2011.jpg', caption: '2011' },
+      sources: [{ label: 'Sassafraz wedding brochure (2023)', url: 'https://www.sassafraz.ca/wp-content/uploads/2023/03/Sassafraz-Wedding-Brochure-2023-03.23.pdf' }, { label: 'WeddingHero: Sassafraz', url: 'https://weddinghero.ca/wedding-venue/toronto/sassafraz' }],
+    },
+    {
+      id: 'cluny', name: 'Cluny Bistro (private room)', area: 'Distillery District', type: 'restaurant', styles: ['Romantic', 'Intimate', 'Classic'],
+      foodie: true,
+      seated: 64, standing: 80, setting: 'indoor', ceremony: null, catering: 'in-house',
+      price: { model: 'minimum', minimum: [2500, 6000], siteFee: [0, 1500], text: 'Private dining room minimum spend about $2,500–$6,000+ by day and season, plus a ~$1,500 site fee on peak dates; the main dining room isn’t available for buyouts' },
+      summary: 'A French bistro in a restored Distillery building, with a private dining room that splits into two.',
+      highlights: ['Seats 64 (or 40 and 24 separately)', 'Minimum spend instead of a big rental fee', 'Cobblestone photos outside'],
+      considerations: ['Private room only; no full buyouts', 'Busy area on weekends'],
+      website: 'https://cluny.ca/',
+      image: commons('d/d2/Restaurant_in_Distillery_District_%2822682622828%29.jpg', 'CC BY 2.0', 'The Distillery District'),
+      sources: [{ label: 'WeddingHero: Cluny private room', url: 'https://weddinghero.ca/wedding-venue/toronto/cluny-bistro-private-room' }, { label: 'Distillery Events capacities', url: 'https://distilleryevents.com/capacities-minimum-spends' }],
+    },
+    {
+      id: 'el-catrin', name: 'El Catrín', area: 'Distillery District', type: 'restaurant', styles: ['Modern', 'Big party', 'Boho'],
+      foodie: true,
+      seated: 120, standing: 200, setting: 'both', ceremony: null, catering: 'in-house',
+      price: { model: 'quote', text: 'Full buyouts (120 seated, 150 with stations, 200 cocktail) priced on request through Distillery Events' },
+      summary: 'A colourful Mexican restaurant with murals, one of Canada’s biggest mezcal and tequila lists, and a huge patio.',
+      highlights: ['A party atmosphere from the start', 'Tapas-style menus and stations', 'Big patio in summer'],
+      considerations: ['Pricing isn’t published', 'Lively rather than formal'],
+      website: 'https://distilleryevents.com/el-catrin',
+      image: commons('0/06/Toronto_Distillery_District_2019_07.jpg', 'CC0', 'The Distillery District'),
+      sources: [{ label: 'Distillery Events: El Catrín', url: 'https://distilleryevents.com/el-catrin' }, { label: 'OpenTable: El Catrín', url: 'https://www.opentable.ca/el-catrin' }],
+    },
+    {
+      id: 'archeo', name: 'Archeo', area: 'Distillery District', type: 'restaurant', styles: ['Rustic', 'Romantic', 'Modern'],
+      foodie: true,
+      seated: 128, standing: 140, setting: null, ceremony: null, catering: 'in-house',
+      price: { model: 'minimum', minimum: [3000, 14000], perPerson: [55, 125], text: 'Minimum spend about $3,000–$14,000 by day and season (no rental fee once it’s met); roughly $55–$125 per person' },
+      summary: 'An Italian trattoria in the Distillery’s old brick buildings, with a wood-fired oven and big communal feel.',
+      highlights: ['Seats about 128', 'No rental fee once the minimum is met', 'Good value for the Distillery'],
+      considerations: ['Saturday minimums in peak season are the highest', 'Busy area on weekends'],
+      website: 'https://distilleryevents.com/',
+      image: null,
+      sources: [{ label: 'WeddingHero/ByCalin: Archeo', url: 'https://www.bycalin.com/articles/wedding-venues-toronto/archeo' }, { label: 'EventSource: Archeo', url: 'https://www.eventsource.ca/archeo' }, { label: 'Distillery Events capacities', url: 'https://distilleryevents.com/capacities-minimum-spends' }],
     },
   ],
 };

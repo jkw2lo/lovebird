@@ -14,6 +14,7 @@ const TOOL_LINKS = {
   guests: ['#/guests', 'Open guest list'],
   seating: ['#/seating', 'Open seating chart'],
   saves: ['#/saves', 'Open saves'],
+  extras: ['#/extras', 'Browse extras & experiences'],
   dayof: ['#/dayof', 'Open day-of timeline'],
   details: ['#/settings', 'Edit wedding details'],
   vendors: ['#/vendors', 'Open vendors'],

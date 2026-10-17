@@ -9,6 +9,8 @@
 // price.model:
 //   'per-person'  food, drink and venue priced per guest (plus any siteFee)
 //   'rental'      venue rental only; you bring a caterer (estimated separately)
+//   'minimum'     a food-and-drink minimum spend: you pay the minimum or the
+//                 per-guest cost (price.perPerson, else typical catering), whichever is higher
 //   'quote'       pricing not published; no estimate shown
 // view: a short note when the venue has a great view; foodie: known for its food.
 // price.inclusive: the per-person price already includes tax and service.
@@ -55,8 +57,13 @@ export function venueEstimate(city, venue, guests) {
   const p = venue.price;
   if (p.model === 'quote') return null;
   const fee = p.siteFee || [0, 0];
-  let low, high;
-  if (p.model === 'per-person') {
+  let low, high, minimumApplies = false;
+  if (p.model === 'minimum') {
+    const pp = p.perPerson || city.outsideCatering;
+    low = Math.max(p.minimum[0], pp[0] * guests) + fee[0];
+    high = Math.max(p.minimum[1], pp[1] * guests) + fee[1];
+    minimumApplies = p.minimum[0] > pp[0] * guests || p.minimum[1] > pp[1] * guests;
+  } else if (p.model === 'per-person') {
     low = p.low * guests + fee[0];
     high = p.high * guests + fee[1];
   } else {
@@ -65,7 +72,7 @@ export function venueEstimate(city, venue, guests) {
   }
   const factor = p.inclusive ? 1 : city.allInFactor;
   const round = (n) => Math.round(n / 500) * 500;
-  return { low: round(low), high: round(high), allInLow: round(low * factor), allInHigh: round(high * factor), includesCatering: p.model === 'per-person' };
+  return { low: round(low), high: round(high), allInLow: round(low * factor), allInHigh: round(high * factor), includesCatering: p.model !== 'rental', minimumApplies };
 }
 
 export function cityFor(text) {

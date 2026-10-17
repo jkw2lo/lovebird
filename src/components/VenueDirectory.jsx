@@ -1,4 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback, lazy, Suspense } from 'react';
+
+// The map library only loads when you switch to the map.
+const VenueMap = lazy(() => import('./VenueMap.jsx'));
 import { Plus, Check, ExternalLink, Users, Info, Sparkles, MapPin } from 'lucide-react';
 import { update, getState } from '../lib/store.js';
 import { VENUE_CITIES, TORONTO, VENUE_TYPES, CATERING_LABEL, venueEstimate, cityFor } from '../data/venues.js';
@@ -36,6 +39,8 @@ export default function VenueDirectory({ state }) {
   const [showSmall, setShowSmall] = useState(false);
   const [sort, setSort] = useState('fit');
   const [openId, setOpenId] = useState(null);
+  const [view, setView] = useState('list');
+  const openVenue = useCallback((id) => setOpenId(id), []);
 
   // What you've set aside for venue + food and drink.
   const lines = budgetSummary(state).lines;
@@ -105,7 +110,8 @@ export default function VenueDirectory({ state }) {
           <label className="row small" style={{ gap: 6 }}><input type="checkbox" className="check" checked={outdoor} onChange={(e) => setOutdoor(e.target.checked)} /> Outdoor space</label>
           {target > 0 && <label className="row small" style={{ gap: 6 }}><input type="checkbox" className="check" checked={onlyFits} onChange={(e) => setOnlyFits(e.target.checked)} /> Within budget</label>}
           <span className="grow" />
-          <Segmented value={sort} onChange={setSort} options={[{ value: 'fit', label: 'Best fit' }, { value: 'price', label: 'Price' }, { value: 'size', label: 'Size' }]} />
+          {view === 'list' && <Segmented value={sort} onChange={setSort} options={[{ value: 'fit', label: 'Best fit' }, { value: 'price', label: 'Price' }, { value: 'size', label: 'Size' }]} />}
+          <Segmented value={view} onChange={setView} options={[{ value: 'list', label: '☰ List' }, { value: 'map', label: '🗺️ Map' }]} />
         </div>
         {tooSmall > 0 && (
           <div className="tiny muted">
@@ -117,6 +123,10 @@ export default function VenueDirectory({ state }) {
 
       {filtered.length === 0 ? (
         <p className="muted" style={{ textAlign: 'center', padding: 30 }}>No venues match all of those. Try loosening a filter.</p>
+      ) : view === 'map' ? (
+        <Suspense fallback={<div className="venue-map" style={{ display: 'grid', placeItems: 'center' }}><span className="muted small">Loading map…</span></div>}>
+          <VenueMap key={city.key} rows={filtered} added={added} guests={guests} currency={city.currency} onOpen={openVenue} />
+        </Suspense>
       ) : (
         <div className="grid auto">
           {filtered.map(({ v, est, fit, fitsSize }) => (
@@ -232,6 +242,7 @@ function VenueDetail({ city, row, guests, target, added, onClose }) {
                 <div className="tiny muted">
                   {money(est.low)}–{money(est.high)} before {v.price.inclusive ? 'anything else (tax and service included)' : 'tax and service'}.
                   {!est.includesCatering && ` Includes about ${money(city.outsideCatering[0])}–${money(city.outsideCatering[1])} per guest for a caterer and bar.`}
+                  {v.price.model === 'minimum' && (est.minimumApplies ? ` At ${guests} guests you'd be paying the minimum spend, not the per-guest price.` : ' Based on the per-guest cost, which is above the minimum spend at this size.')}
                   {target ? ` Your budget sets aside ${money(target)} for venue plus food and drink.` : ''}
                 </div>
               </>

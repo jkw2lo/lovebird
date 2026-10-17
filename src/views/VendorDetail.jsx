@@ -6,7 +6,6 @@ import { CATEGORIES, CATEGORY_BY_KEY, VENDOR_STATUSES, AVAILABILITY } from '../d
 import { chosenQuote, bookedVendor } from '../lib/derive.js';
 import { money, fmtDate, newId, hostOf, normalizeUrl, addDays, parseDay, dayString, today } from '../lib/util.js';
 import { Field, Text, MoneyInput, Stars, Photo, Modal, Empty, go, toast } from '../components/ui.jsx';
-import { readQuote } from '../lib/ai.js';
 import { keepFile } from '../lib/links.js';
 
 function setVendor(id, patch) {
@@ -221,6 +220,7 @@ function ReadQuoteModal({ vendor, cat, onClose }) {
     setBusy(true);
     setError('');
     try {
+      const { readQuote } = await import('../lib/ai.js');
       const r = await readQuote({ state: getState(), text, category: cat.key });
       const fields = Object.fromEntries((r.fields || []).filter((f) => cat.fields.includes(f.label)).map((f) => [f.label, f.value]));
       setVendor(vendor.id, (x) => {

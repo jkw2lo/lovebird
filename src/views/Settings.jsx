@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Download, Upload, KeyRound, Trash2 } from 'lucide-react';
 import { useAppState, update, useSaveStatus } from '../lib/store.js';
-import { MODELS } from '../lib/ai.js';
+import { MODELS } from '../lib/models.js';
 import { exportBackup, importBackup, resetEverything } from '../lib/backup.js';
 import { PageHead, Field, Text, MoneyInput, toast } from '../components/ui.jsx';
 import MagpieImport from '../components/MagpieImport.jsx';

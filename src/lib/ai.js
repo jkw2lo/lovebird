@@ -6,11 +6,7 @@ import { CATEGORY_BY_KEY } from '../data/categories.js';
 import { allTasks, taskStatus, budgetSummary, guestStats, vendorCost, coupleName, daysToGo, currentPhase, upcomingPayments } from './derive.js';
 import { fmtDate, dayString, today } from './util.js';
 
-export const MODELS = [
-  { id: 'claude-opus-5', label: 'Claude Opus 5 — most thoughtful' },
-  { id: 'claude-sonnet-5', label: 'Claude Sonnet 5 — balanced' },
-  { id: 'claude-haiku-4-5', label: 'Claude Haiku 4.5 — fastest & cheapest' },
-];
+export { MODELS } from './models.js';
 
 function client(apiKey) {
   return new Anthropic({ apiKey, dangerouslyAllowBrowser: true, maxRetries: 2 });

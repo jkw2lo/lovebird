@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Sparkles, X, ArrowUp, Square, Eraser } from 'lucide-react';
 import { useAppState, update, getState } from '../lib/store.js';
-import { askPlanner } from '../lib/ai.js';
 import { Drawer, Markdown } from './ui.jsx';
 import { newId } from '../lib/util.js';
 
@@ -55,6 +54,7 @@ export default function Assistant() {
     setStreaming('');
     abort.current = new AbortController();
     try {
+      const { askPlanner } = await import('../lib/ai.js');
       const reply = await askPlanner({ state: getState(), history, onText: setStreaming, signal: abort.current.signal });
       if (reply.trim()) update((s) => { s.chat.push({ id: newId('m_'), role: 'assistant', content: reply }); });
     } catch (err) {

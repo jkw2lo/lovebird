@@ -192,6 +192,18 @@ export const CATEGORIES = [
     questions: ['How long does production and shipping take?', 'Is there a minimum order?'],
   },
   {
+    key: 'extras', label: 'Extras & experiences', emoji: '🎉', budgetPct: 2, essential: false,
+    blurb: 'Food stations, games, keepsakes and traditions: bubble tea, a claw machine, a photo booth, a lion dance. Browse ideas under Extras.',
+    fields: ['What it is', 'Hours', 'Guests served', 'Delivery & setup'],
+    questions: [
+      'What\u2019s included: staff, supplies, delivery, setup and pickup?',
+      'How much space and power do you need, and how early do you arrive?',
+      'Do you carry liability insurance? (Many venues require a certificate.)',
+      'How many guests can you serve per hour?',
+      'What happens if something breaks or runs out during the event?',
+    ],
+  },
+  {
     key: 'hotel', label: 'Hotel blocks', emoji: '🏨', budgetPct: 0, essential: false,
     blurb: 'Discounted rooms held for your guests. Guests usually pay for their own rooms.',
     fields: ['Rooms held', 'Group rate', 'Cutoff date', 'Attrition', 'Shuttle'],
@@ -209,7 +221,7 @@ export const CATEGORY_BY_KEY = Object.fromEntries(CATEGORIES.map((c) => [c.key, 
 // The budget is split across these lines: every vendor category plus a cushion.
 export const BUDGET_LINES = [
   ...CATEGORIES.filter((c) => c.budgetPct > 0).map(({ key, label, emoji, budgetPct }) => ({ key, label, emoji, budgetPct })),
-  { key: 'other', label: 'Cushion & extras', emoji: '🧾', budgetPct: 4 },
+  { key: 'other', label: 'Cushion', emoji: '🧾', budgetPct: 2 },
 ];
 
 export const VENDOR_STATUSES = [
