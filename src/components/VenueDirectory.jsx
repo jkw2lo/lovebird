@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Plus, Check, ExternalLink, Users, Info, Sparkles, MapPin } from 'lucide-react';
 import { update, getState } from '../lib/store.js';
-import { TORONTO, VENUE_TYPES, CATERING_LABEL, venueEstimate } from '../data/venues.js';
+import { VENUE_CITIES, TORONTO, VENUE_TYPES, CATERING_LABEL, venueEstimate, cityFor } from '../data/venues.js';
 import { budgetSummary } from '../lib/derive.js';
 import { newVendor } from '../lib/magpie.js';
 import { keepPhoto } from '../lib/links.js';
@@ -9,9 +9,10 @@ import { money, plural } from '../lib/util.js';
 import { Modal, Photo, Segmented, go, toast } from './ui.jsx';
 import { openAssistant } from './Assistant.jsx';
 
-// Researched venues you can browse, filter by what fits, and add to your options.
+// Researched venues, by city, that you can browse, filter by what fits, and add to your options.
 
 const SETTING_LABEL = { indoor: 'Indoor', outdoor: 'Outdoor', both: 'Indoor & outdoor' };
+const hasOutdoor = (v) => v.setting === 'both' || v.setting === 'outdoor';
 const k = (n) => (n >= 1000 ? `$${Math.round(n / 1000)}k` : money(n));
 
 function fitFor(est, target) {
@@ -23,7 +24,8 @@ function fitFor(est, target) {
 }
 
 export default function VenueDirectory({ state }) {
-  const city = TORONTO;
+  const [cityKey, setCityKey] = useState(() => (cityFor(state.wedding.city) || TORONTO).key);
+  const city = VENUE_CITIES.find((c) => c.key === cityKey);
   const [guests, setGuests] = useState(state.wedding.guestEstimate || 120);
   const [type, setType] = useState('all');
   const [catering, setCatering] = useState('all');
@@ -41,13 +43,13 @@ export default function VenueDirectory({ state }) {
   const rows = useMemo(() => city.venues.map((v) => {
     const est = venueEstimate(city, v, guests);
     return { v, est, fit: fitFor(est, target), fitsSize: v.seated >= guests && (!v.minGuests || v.minGuests <= guests) };
-  }), [guests, target]);
+  }), [city, guests, target]);
 
   const filtered = rows.filter(({ v, fit, fitsSize }) =>
     (showSmall || fitsSize)
     && (type === 'all' || v.type === type)
     && (catering === 'all' || (catering === 'own' ? v.catering !== 'in-house' : v.catering === 'in-house'))
-    && (!outdoor || v.setting !== 'indoor')
+    && (!outdoor || hasOutdoor(v))
     && (!onlyFits || (fit && (fit.tone === 'green' || fit.tone === 'gold'))));
   const rank = { green: 0, gold: 1, warn: 2, danger: 3 };
   filtered.sort((a, b) => {
@@ -61,11 +63,20 @@ export default function VenueDirectory({ state }) {
 
   return (
     <div className="stack">
+      <div className="row wrap" style={{ gap: 10 }}>
+        <Segmented value={cityKey} onChange={(k) => { setCityKey(k); setType('all'); }} options={VENUE_CITIES.map((c) => ({ value: c.key, label: `${c.label} · ${c.venues.length}` }))} />
+      </div>
       <div className="callout">
         <Info size={17} />
-        <div className="small">
-          <strong>{city.venues.length} {city.label} venues, researched {city.researched}.</strong> Prices come from venue packages and wedding directories, and some are a year or two old,
-          so treat them as a starting point and confirm with the venue. Estimates are for venue plus food and drink{target ? `, compared with the ${money(target)} your budget sets aside for both` : ''}.
+        <div className="small stack tight">
+          <div>
+            <strong>{city.venues.length} {city.label} venues, researched {city.researched}.</strong> Prices come from venue packages and wedding directories, and some are a year or two old,
+            so treat them as a starting point and confirm with the venue. Estimates are for venue plus food and drink, in {city.currency === 'CAD' ? 'Canadian' : 'US'} dollars{target ? `, compared with the ${money(target)} your budget sets aside for both` : ''}.
+          </div>
+          <details>
+            <summary style={{ cursor: 'pointer', fontWeight: 600 }}>How wedding costs work in {city.label}</summary>
+            <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>{city.costNotes.map((n) => <li key={n}>{n}</li>)}</ul>
+          </details>
         </div>
       </div>
 
@@ -116,16 +127,16 @@ export default function VenueDirectory({ state }) {
                 <div className="row wrap" style={{ gap: 5 }}>
                   <span className="chip">Seats {v.seated}</span>
                   <span className="chip">{CATERING_LABEL[v.catering]}</span>
-                  {v.setting !== 'indoor' && <span className="chip">{SETTING_LABEL[v.setting]}</span>}
+                  {hasOutdoor(v) && <span className="chip">{SETTING_LABEL[v.setting]}</span>}
                 </div>
                 <div className="venue-est">
-                  <div><span className="num" style={{ fontWeight: 650 }}>≈ {k(est.allInLow)}–{k(est.allInHigh)}</span> <span className="tiny muted">all-in for {guests}</span></div>
+                  <div><span className="num" style={{ fontWeight: 650 }}>≈ {k(est.allInLow)}–{k(est.allInHigh)}</span> <span className="tiny muted">{city.currency} all-in for {guests}</span></div>
                   {fit && <span className={`chip ${fit.tone}`}>{fit.label}</span>}
                 </div>
                 <div className="row" style={{ marginTop: 2 }}>
                   {added.has(v.id)
                     ? <a className="btn sm" href={`#/vendor/${added.get(v.id).id}`}>Open</a>
-                    : <button className="btn sm primary" onClick={() => addVenue(v)}><Plus size={14} /> Add to my options</button>}
+                    : <button className="btn sm primary" onClick={() => addVenue(city, v)}><Plus size={14} /> Add to my options</button>}
                   <button className="btn sm ghost" onClick={() => setOpenId(v.id)}>Details</button>
                 </div>
               </div>
@@ -134,7 +145,7 @@ export default function VenueDirectory({ state }) {
         </div>
       )}
 
-      {open && <VenueDetail row={open} guests={guests} target={target} added={added.get(open.v.id)} onClose={() => setOpenId(null)} />}
+      {open && <VenueDetail city={city} row={open} guests={guests} target={target} added={added.get(open.v.id)} onClose={() => setOpenId(null)} />}
     </div>
   );
 }
@@ -144,13 +155,12 @@ function VenuePhoto({ v }) {
   return (
     <>
       <Photo url={v.image.url} alt={v.name} fallback={<div className="venue-placeholder"><span>{VENUE_TYPES[v.type].emoji}</span></div>} />
-      <span className="photo-credit">Photo: {v.image.credit}</span>
+      <span className="photo-credit">Photo: {v.image.credit}{v.image.caption ? ` · ${v.image.caption}` : ''}</span>
     </>
   );
 }
 
-async function addVenue(v) {
-  const city = TORONTO;
+async function addVenue(city, v) {
   const vendor = newVendor({
     category: 'venue', name: v.name, website: v.website, location: `${v.area}, ${city.label}`, summary: v.summary,
     startingPrice: v.price.text, imageUrl: v.image ? v.image.url : null, tags: v.styles, directoryId: v.id,
@@ -158,7 +168,7 @@ async function addVenue(v) {
       { label: 'Max guests', value: `${v.seated} seated${v.standing ? ` / ${v.standing} standing` : ''}` },
       { label: 'Catering', value: CATERING_LABEL[v.catering] },
       { label: 'Ceremony on site', value: v.ceremony ? 'Yes' : 'No' },
-      { label: 'Setting', value: SETTING_LABEL[v.setting] },
+      ...(v.setting ? [{ label: 'Setting', value: SETTING_LABEL[v.setting] }] : []),
       { label: 'Researched price', value: v.price.text },
     ],
     pros: v.highlights.join('\n'),
@@ -174,17 +184,16 @@ async function addVenue(v) {
   }
 }
 
-function VenueDetail({ row, guests, target, added, onClose }) {
+function VenueDetail({ city, row, guests, target, added, onClose }) {
   const { v, est, fit } = row;
-  const city = TORONTO;
   const perGuest = (n) => money(n / guests);
   return (
-    <Modal title={v.name} subtitle={`${v.area} · ${VENUE_TYPES[v.type].label} · ${SETTING_LABEL[v.setting]}`} onClose={onClose} wide
+    <Modal title={v.name} subtitle={[v.area, city.label, VENUE_TYPES[v.type].label, SETTING_LABEL[v.setting]].filter(Boolean).join(' · ')} onClose={onClose} wide
       footer={<>
         <a className="btn ghost" href={v.website} target="_blank" rel="noreferrer" style={{ marginRight: 'auto' }}><ExternalLink size={14} /> Venue website</a>
-        <button className="btn ghost" onClick={() => { onClose(); openAssistant(`Tell us about ${v.name} in Toronto as a wedding venue for about ${guests} guests. Is it a good fit for our style and budget, and what should we ask them?`); }}><Sparkles size={14} /> Ask your planner</button>
+        <button className="btn ghost" onClick={() => { onClose(); openAssistant(`Tell us about ${v.name} in ${city.label} as a wedding venue for about ${guests} guests. Is it a good fit for our style and budget, and what should we ask them?`); }}><Sparkles size={14} /> Ask your planner</button>
         {added ? <a className="btn primary" href={`#/vendor/${added.id}`} onClick={onClose}>Open in my options</a>
-          : <button className="btn primary" onClick={() => { addVenue(v); onClose(); }}><Plus size={15} /> Add to my options</button>}
+          : <button className="btn primary" onClick={() => { addVenue(city, v); onClose(); }}><Plus size={15} /> Add to my options</button>}
       </>}>
       <div className="stack">
         <div className="venue-hero"><VenuePhoto v={v} /></div>
@@ -195,13 +204,14 @@ function VenueDetail({ row, guests, target, added, onClose }) {
             <div>{v.seated} seated{v.standing ? ` · ${v.standing} standing` : ''}{v.minGuests ? ` · minimum about ${v.minGuests}` : ''}</div>
             <div className="label" style={{ marginTop: 6 }}>Catering</div>
             <div>{CATERING_LABEL[v.catering]}{v.ceremony ? ' · ceremony on site' : ''}</div>
+            {v.setting && <><div className="label" style={{ marginTop: 6 }}>Setting</div><div>{SETTING_LABEL[v.setting]}</div></>}
           </div>
           <div className="card flat pad stack tight">
             <div className="label">What it costs</div>
             <div>{v.price.text}</div>
             <div className="label" style={{ marginTop: 6 }}>For {guests} guests</div>
             <div>
-              <strong className="num">{money(est.allInLow)}–{money(est.allInHigh)}</strong> all-in ({perGuest(est.allInLow)}–{perGuest(est.allInHigh)} per guest)
+              <strong className="num">{money(est.allInLow)}–{money(est.allInHigh)} {city.currency}</strong> all-in ({perGuest(est.allInLow)}–{perGuest(est.allInHigh)} per guest)
               {fit && <span className={`chip ${fit.tone}`} style={{ marginLeft: 6 }}>{fit.label}</span>}
             </div>
             <div className="tiny muted">
@@ -226,5 +236,5 @@ function VenueDetail({ row, guests, target, added, onClose }) {
 }
 
 export function cityHasDirectory() {
-  return TORONTO.match.test(getState().wedding.city || '');
+  return !!cityFor(getState().wedding.city);
 }

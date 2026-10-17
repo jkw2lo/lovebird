@@ -10,7 +10,6 @@ import { AddVendorModal } from './Vendors.jsx';
 import { BookModal } from './VendorDetail.jsx';
 import { openAssistant } from '../components/Assistant.jsx';
 import VenueDirectory from '../components/VenueDirectory.jsx';
-import { TORONTO } from '../data/venues.js';
 
 export const STATUS_LABEL = Object.fromEntries(VENDOR_STATUSES.map((s) => [s.key, s.label]));
 export const AVAIL_LABEL = Object.fromEntries(AVAILABILITY.map((s) => [s.key, s.label]));
@@ -48,7 +47,7 @@ export default function VendorCategory({ category }) {
       </div>
 
       <div className="tabs">
-        {hasDirectory && <button className={tab === 'discover' ? 'on' : ''} onClick={() => setTab('discover')}>✨ Discover {TORONTO.label} venues</button>}
+        {hasDirectory && <button className={tab === 'discover' ? 'on' : ''} onClick={() => setTab('discover')}>✨ Discover venues</button>}
         <button className={tab === 'options' ? 'on' : ''} onClick={() => setTab('options')}>Your options ({vendors.length})</button>
         <button className={tab === 'compare' ? 'on' : ''} onClick={() => setTab('compare')}>Compare</button>
         <button className={tab === 'questions' ? 'on' : ''} onClick={() => setTab('questions')}>Questions to ask</button>

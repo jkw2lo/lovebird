@@ -1,0 +1,91 @@
+// Jersey City wedding venues, researched October 2026. See ../venues.js for how prices work.
+
+import { commons, site } from './photos.js';
+
+const guide = (slug) => ({ label: 'Here Comes The Guide', url: `https://www.herecomestheguide.com/wedding-venues/new-jersey/${slug}` });
+
+export const JERSEY_CITY = {
+  key: 'jersey-city',
+  label: 'Jersey City',
+  currency: 'USD',
+  researched: 'October 2026',
+  match: /jersey city|hoboken|weehawken|hudson county|liberty state park/i,
+  costNotes: [
+    'Prices are in US dollars.',
+    'New Jersey adds 6.625% sales tax.',
+    'Service or admin charges here usually run 20–24%, so a $200 per person package lands around $260 all-in.',
+    'Most Jersey City waterfront venues sell all-inclusive packages: venue, food, open bar and cake in one per-person price.',
+    'On-site ceremonies usually add about $15 per person.',
+    'Daytime weddings and January to March are the cheapest.',
+  ],
+  outsideCatering: [125, 220],
+  allInFactor: 1.31, // ~23% service, then 6.625% sales tax
+  venues: [
+    {
+      id: 'liberty-house', name: 'Liberty House', area: 'Liberty State Park', type: 'waterfront', styles: ['Classic', 'Romantic', 'Big party'],
+      seated: 325, standing: null, minGuests: 50, setting: 'both', ceremony: true, catering: 'in-house',
+      price: { model: 'per-person', low: 182, high: 325, text: '2026: $218–$325 per person April–December, $182–$228 January–March, daytime from $180; plus 24% admin fee and tax' },
+      summary: 'A restaurant and event space in Liberty State Park, looking straight across the harbor at Lower Manhattan.',
+      highlights: ['The classic skyline-view wedding', 'Packages include open bar, stations, cake and dinner', 'Grand Ballroom (325) or Liberty Room (150)'],
+      considerations: ['24% admin fee on top', 'Saturday Grand Ballroom needs about 200 guests'],
+      website: 'https://bylandmark.com/venues/liberty-house/',
+      image: site('https://bylandmark.com/wp-content/uploads/2026/06/liberty-scaled.jpg', 'Landmark Venues'),
+      sources: [guide('liberty-house-restaurant'), { label: 'Tulle Together: NJ venues', url: 'https://tulletogether.com/2025/09/12/popular-new-jersey-venues-and-how-much-it-costs-to-get-married-there/' }],
+    },
+    {
+      id: 'maritime-parc', name: 'Maritime Parc', area: 'Liberty State Park marina', type: 'waterfront', styles: ['Modern', 'Romantic', 'Big party'],
+      seated: 400, standing: 550, setting: 'both', ceremony: true, catering: 'in-house',
+      price: { model: 'per-person', low: 215, high: 315, text: 'Packages about $215–$315 per person including venue, food and bar; plus 23% service' },
+      summary: 'A waterfront restaurant at the Liberty Landing marina with skyline views and an outdoor ceremony lawn.',
+      highlights: ['Outdoor ceremonies for about 125', 'Seats up to 400 indoors', 'Manhattan skyline at sunset'],
+      considerations: ['23% service charge', 'Peak season runs May to December'],
+      website: 'https://www.maritimeparc.com/weddings',
+      image: commons('6/6d/View_of_Manhattan_Skyline_from_Liberty_State_Park_-_Jersey_City_-_New_Jersey_-_USA.jpg', 'CC BY-SA 3.0', 'The view from Liberty State Park'),
+      sources: [guide('maritime-parc'), { label: 'Maritime Parc wedding guide', url: 'https://www.jordanbrian.com/maritime-parc-wedding-guide-jersey-city-nj/' }],
+    },
+    {
+      id: 'hudson-house', name: 'Hudson House', area: 'Port Liberté', type: 'waterfront', styles: ['Classic', 'Romantic', 'Big party'],
+      seated: 400, standing: 550, setting: null, ceremony: true, catering: 'in-house',
+      price: { model: 'per-person', low: 184, high: 391, text: '2025–26: daytime about $184–$193 per person; evenings $192–$391 by season and day' },
+      summary: 'A waterfront venue on the Port Liberté canals with the Statue of Liberty and skyline in view.',
+      highlights: ['Grand Ballroom for up to 400', 'Two ballrooms for very large weddings', 'Same group as Liberty House'],
+      considerations: ['Wide price range by season and time of day', 'Out of the way without a car'],
+      website: 'https://bylandmark.com/venues/hudson-house/',
+      image: site('https://bylandmark.com/wp-content/uploads/2023/10/103736.jpg', 'Landmark Venues'),
+      sources: [guide('hudson-house'), { label: 'Hudson House pricing', url: 'https://landmarkvenues.com/wp-content/uploads/2024/07/HUDSON-HOUSE.pdf' }],
+    },
+    {
+      id: 'battello', name: 'Battello', area: 'Newport waterfront', type: 'waterfront', styles: ['Modern', 'Intimate', 'Romantic'],
+      seated: 200, standing: null, setting: null, ceremony: true, catering: 'in-house',
+      price: { model: 'per-person', low: 230, high: 300, text: 'Packages about $230–$300 per person including rental, food and drink; ceremony about $15 per person' },
+      summary: 'A waterfront restaurant in Newport facing the Manhattan skyline.',
+      highlights: ['Manhattan skyline views', 'All-inclusive packages', 'Close to the Newport PATH'],
+      considerations: ['Tops out around 200 guests', 'Couples report spending about $35k–$60k all-in'],
+      website: 'https://www.battellojc.com/',
+      image: null,
+      sources: [guide('battello'), { label: 'Battello wedding guide', url: 'https://www.jordanbrian.com/battello-wedding-guide-jersey-city-nj/' }],
+    },
+    {
+      id: 'hyatt-jc', name: 'Hyatt Regency Jersey City', area: 'Exchange Place', type: 'hotel', styles: ['Classic', 'Modern', 'Big party', 'Cultural traditions'],
+      seated: 550, standing: 800, setting: 'both', ceremony: true, catering: 'in-house',
+      price: { model: 'per-person', low: 175, high: 275, text: 'Reported at about $175–$275 per person depending on date' },
+      summary: 'A waterfront hotel on the Hudson with large ballrooms and a riverside terrace facing Lower Manhattan.',
+      highlights: ['Ballrooms for 550–800', 'Riverside terrace for about 250', 'Guests stay on site, next to the PATH'],
+      considerations: ['Hotel-ballroom feel', 'Reported prices vary; get a quote'],
+      website: 'https://www.hyatt.com/hyatt-regency/en-US/newjp-hyatt-regency-jersey-city-on-the-hudson/weddings',
+      image: commons('6/6e/Hyatt_Regency_Jersey_City_on_the_Hudson%2C_New_Jersey%2C_US.jpg', 'CC BY-SA 4.0'),
+      sources: [{ label: 'The Knot', url: 'https://www.theknot.com/marketplace/hyatt-hyatt-regency-jersey-city-jersey-city-nj-557523' }, { label: 'NJ Wedding', url: 'https://www.njwedding.com/new-jersey/jersey-city/wedding-services/hyatt-regency-jersey-city' }],
+    },
+    {
+      id: 'barrow-mansion', name: 'Barrow Mansion', area: 'Downtown Jersey City', type: 'historic', styles: ['Intimate', 'Romantic', 'Boho'],
+      seated: 120, standing: 175, setting: null, ceremony: true, catering: 'outside',
+      price: { model: 'rental', low: 8000, high: 12000, text: 'Micro ceremonies from $1,000; full-day rental reported at $8,000–$12,000+, plus your caterer' },
+      summary: 'A historic 1830s mansion downtown, now run as a nonprofit community and arts center.',
+      highlights: ['Historic and intimate', 'Bring your own caterer', 'In-house planner can package it'],
+      considerations: ['Seats about 120 with a small dance floor', 'Reported prices vary; confirm current rates'],
+      website: 'https://barrowmansion.org/',
+      image: site('https://barrowmansion.org/wp-content/uploads/2025/08/Barrow-Mansion-Front.webp', 'Barrow Mansion'),
+      sources: [{ label: 'Barrow Mansion weddings FAQ', url: 'https://barrowmansion.org/weddings-faq/' }, guide('barrow-mansion')],
+    },
+  ],
+};
