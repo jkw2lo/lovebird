@@ -9,6 +9,8 @@
 // price.model:
 //   'per-person'  food, drink and venue priced per guest (plus any siteFee)
 //   'rental'      venue rental only; you bring a caterer (estimated separately)
+//   'quote'       pricing not published; no estimate shown
+// view: a short note when the venue has a great view; foodie: known for its food.
 // price.inclusive: the per-person price already includes tax and service.
 //
 // Photos are links, never copies: the venue's own preview image, or a freely
@@ -51,6 +53,7 @@ export const CATERING_LABEL = {
  */
 export function venueEstimate(city, venue, guests) {
   const p = venue.price;
+  if (p.model === 'quote') return null;
   const fee = p.siteFee || [0, 0];
   let low, high;
   if (p.model === 'per-person') {

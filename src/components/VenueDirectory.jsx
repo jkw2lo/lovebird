@@ -16,7 +16,7 @@ const hasOutdoor = (v) => v.setting === 'both' || v.setting === 'outdoor';
 const k = (n) => (n >= 1000 ? `$${Math.round(n / 1000)}k` : money(n));
 
 function fitFor(est, target) {
-  if (!target) return null;
+  if (!target || !est) return null;
   if (est.allInHigh <= target) return { tone: 'green', label: 'Fits your budget' };
   if (est.allInLow <= target) return { tone: 'gold', label: 'Could fit' };
   if (est.allInLow <= target * 1.25) return { tone: 'warn', label: 'A stretch' };
@@ -31,6 +31,8 @@ export default function VenueDirectory({ state }) {
   const [catering, setCatering] = useState('all');
   const [outdoor, setOutdoor] = useState(false);
   const [onlyFits, setOnlyFits] = useState(false);
+  const [withView, setWithView] = useState(false);
+  const [foodie, setFoodie] = useState(false);
   const [showSmall, setShowSmall] = useState(false);
   const [sort, setSort] = useState('fit');
   const [openId, setOpenId] = useState(null);
@@ -50,12 +52,15 @@ export default function VenueDirectory({ state }) {
     && (type === 'all' || v.type === type)
     && (catering === 'all' || (catering === 'own' ? v.catering !== 'in-house' : v.catering === 'in-house'))
     && (!outdoor || hasOutdoor(v))
+    && (!withView || v.view)
+    && (!foodie || v.foodie)
     && (!onlyFits || (fit && (fit.tone === 'green' || fit.tone === 'gold'))));
   const rank = { green: 0, gold: 1, warn: 2, danger: 3 };
+  const low = (r) => (r.est ? r.est.allInLow : Infinity); // pricing on request sorts last
   filtered.sort((a, b) => {
-    if (sort === 'price') return a.est.allInLow - b.est.allInLow;
+    if (sort === 'price') return low(a) - low(b);
     if (sort === 'size') return b.v.seated - a.v.seated;
-    return (rank[a.fit?.tone] ?? 9) - (rank[b.fit?.tone] ?? 9) || a.est.allInLow - b.est.allInLow;
+    return (rank[a.fit?.tone] ?? 9) - (rank[b.fit?.tone] ?? 9) || low(a) - low(b);
   });
   const tooSmall = rows.filter((r) => !r.fitsSize).length;
   const types = [...new Set(city.venues.map((v) => v.type))];
@@ -95,6 +100,8 @@ export default function VenueDirectory({ state }) {
             <option value="in-house">Catering included</option>
             <option value="own">Choose or bring a caterer</option>
           </select>
+          <label className="row small" style={{ gap: 6 }}><input type="checkbox" className="check" checked={withView} onChange={(e) => setWithView(e.target.checked)} /> Great view</label>
+          <label className="row small" style={{ gap: 6 }}><input type="checkbox" className="check" checked={foodie} onChange={(e) => setFoodie(e.target.checked)} /> Known for the food</label>
           <label className="row small" style={{ gap: 6 }}><input type="checkbox" className="check" checked={outdoor} onChange={(e) => setOutdoor(e.target.checked)} /> Outdoor space</label>
           {target > 0 && <label className="row small" style={{ gap: 6 }}><input type="checkbox" className="check" checked={onlyFits} onChange={(e) => setOnlyFits(e.target.checked)} /> Within budget</label>}
           <span className="grow" />
@@ -124,13 +131,17 @@ export default function VenueDirectory({ state }) {
                 </div>
                 <div className="tiny muted row" style={{ gap: 4 }}><MapPin size={12} /> {v.area} · {VENUE_TYPES[v.type].label}</div>
                 <p className="small ink2">{v.summary}</p>
+                {v.view && <p className="tiny" style={{ color: 'var(--accent-2)', fontWeight: 600 }}>🌆 {v.view}</p>}
                 <div className="row wrap" style={{ gap: 5 }}>
                   <span className="chip">Seats {v.seated}</span>
                   <span className="chip">{CATERING_LABEL[v.catering]}</span>
                   {hasOutdoor(v) && <span className="chip">{SETTING_LABEL[v.setting]}</span>}
+                  {v.foodie && <span className="chip gold">🍽️ Known for the food</span>}
                 </div>
                 <div className="venue-est">
-                  <div><span className="num" style={{ fontWeight: 650 }}>≈ {k(est.allInLow)}–{k(est.allInHigh)}</span> <span className="tiny muted">{city.currency} all-in for {guests}</span></div>
+                  {est
+                    ? <div><span className="num" style={{ fontWeight: 650 }}>≈ {k(est.allInLow)}–{k(est.allInHigh)}</span> <span className="tiny muted">{city.currency} all-in for {guests}</span></div>
+                    : <div className="small muted">Pricing on request</div>}
                   {fit && <span className={`chip ${fit.tone}`}>{fit.label}</span>}
                 </div>
                 <div className="row" style={{ marginTop: 2 }}>
@@ -167,7 +178,8 @@ async function addVenue(city, v) {
     details: [
       { label: 'Max guests', value: `${v.seated} seated${v.standing ? ` / ${v.standing} standing` : ''}` },
       { label: 'Catering', value: CATERING_LABEL[v.catering] },
-      { label: 'Ceremony on site', value: v.ceremony ? 'Yes' : 'No' },
+      { label: 'Ceremony on site', value: v.ceremony === true ? 'Yes' : v.ceremony === false ? 'No' : 'Ask the venue' },
+      ...(v.view ? [{ label: 'View', value: v.view }] : []),
       ...(v.setting ? [{ label: 'Setting', value: SETTING_LABEL[v.setting] }] : []),
       { label: 'Researched price', value: v.price.text },
     ],
@@ -204,21 +216,26 @@ function VenueDetail({ city, row, guests, target, added, onClose }) {
             <div>{v.seated} seated{v.standing ? ` · ${v.standing} standing` : ''}{v.minGuests ? ` · minimum about ${v.minGuests}` : ''}</div>
             <div className="label" style={{ marginTop: 6 }}>Catering</div>
             <div>{CATERING_LABEL[v.catering]}{v.ceremony ? ' · ceremony on site' : ''}</div>
+            {v.view && <><div className="label" style={{ marginTop: 6 }}>View</div><div>{v.view}</div></>}
             {v.setting && <><div className="label" style={{ marginTop: 6 }}>Setting</div><div>{SETTING_LABEL[v.setting]}</div></>}
           </div>
           <div className="card flat pad stack tight">
             <div className="label">What it costs</div>
             <div>{v.price.text}</div>
-            <div className="label" style={{ marginTop: 6 }}>For {guests} guests</div>
-            <div>
-              <strong className="num">{money(est.allInLow)}–{money(est.allInHigh)} {city.currency}</strong> all-in ({perGuest(est.allInLow)}–{perGuest(est.allInHigh)} per guest)
-              {fit && <span className={`chip ${fit.tone}`} style={{ marginLeft: 6 }}>{fit.label}</span>}
-            </div>
-            <div className="tiny muted">
-              {money(est.low)}–{money(est.high)} before {v.price.inclusive ? 'anything else (tax and service included)' : 'tax and service'}.
-              {!est.includesCatering && ` Includes about ${money(city.outsideCatering[0])}–${money(city.outsideCatering[1])} per guest for a caterer and bar.`}
-              {target ? ` Your budget sets aside ${money(target)} for venue plus food and drink.` : ''}
-            </div>
+            {est ? (
+              <>
+                <div className="label" style={{ marginTop: 6 }}>For {guests} guests</div>
+                <div>
+                  <strong className="num">{money(est.allInLow)}–{money(est.allInHigh)} {city.currency}</strong> all-in ({perGuest(est.allInLow)}–{perGuest(est.allInHigh)} per guest)
+                  {fit && <span className={`chip ${fit.tone}`} style={{ marginLeft: 6 }}>{fit.label}</span>}
+                </div>
+                <div className="tiny muted">
+                  {money(est.low)}–{money(est.high)} before {v.price.inclusive ? 'anything else (tax and service included)' : 'tax and service'}.
+                  {!est.includesCatering && ` Includes about ${money(city.outsideCatering[0])}–${money(city.outsideCatering[1])} per guest for a caterer and bar.`}
+                  {target ? ` Your budget sets aside ${money(target)} for venue plus food and drink.` : ''}
+                </div>
+              </>
+            ) : <div className="tiny muted" style={{ marginTop: 6 }}>They don’t publish pricing, so there’s no estimate. Ask for a quote for {guests} guests.</div>}
           </div>
         </div>
         <div className="grid two">
